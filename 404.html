@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="/blog/favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+		<title>Pir Ahmed Shah | Dev Blog</title>
+		<meta name="title" content="Pir Ahmed Shah | Dev Blog" />
+		<meta
+			name="description"
+			content="Engineering logs, Svelte 5 deep dives, and CS fundamentals from a 4th-sem student at FAST-NUCES."
+		/>
+
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content="https://pirahmedshah.github.io/blog" />
+		<meta property="og:title" content="Pir Ahmed Shah | Dev Blog" />
+		<meta
+			property="og:description"
+			content="Documenting the build of RoDevsy and the 4th-semester grind."
+		/>
+		<meta property="og:image" content="/blog/og-image.png" />
+
+		<meta property="twitter:card" content="summary_large_image" />
+		<meta property="twitter:title" content="Pir Ahmed Shah | Dev Blog" />
+		<meta property="twitter:description" content="Engineering logs and Svelte 5 explorations." />
+
+		<script>
+			(function () {
+				try {
+					const saved = localStorage.getItem('theme');
+					const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+					const theme = saved || (systemDark ? 'dark' : 'light');
+					document.documentElement.setAttribute('data-theme', theme);
+				} catch (e) {
+					document.documentElement.setAttribute('data-theme', 'light');
+				}
+			})();
+		</script>
+		<link href="/blog/_app/immutable/entry/start.CFPBq95o.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/zxARfzR5.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/blYzvZfO.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/BpBLbOQD.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/DwEslIlY.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/8UtF8RsF.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/CYgJF_JY.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/entry/app.DmS1zaX-.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/PPVm8Dsz.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/BOQJ2bh4.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/CvoP13mv.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/DFwhNxCl.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/D14GLmpq.js" rel="modulepreload">
+		<link href="/blog/_app/immutable/chunks/BooUaoGr.js" rel="modulepreload">
+		
+	</head>
+	<body data-sveltekit-preload-data="hover" class="antialiased selection:bg-primary/30">
+		<div style="display: contents">
+			<script>
+				{
+					__sveltekit_1hszvq1 = {
+						base: "/blog",
+						assets: "/blog"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("/blog/_app/immutable/entry/start.CFPBq95o.js"),
+						import("/blog/_app/immutable/entry/app.DmS1zaX-.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>
