@@ -1,0 +1,36 @@
+---
+name: "Stack"
+description: "Practical projects, coding tutorials, and step-by-step implementation guides."
+color: "#D08770"
+icon: "Hammer"
+order: 2
+---
+
+Building is where the fun happens. This space is all about getting my hands dirty with code, turning ideas into working software, figuring out edge cases, and documenting the actual implementations.
+
+Here is the tech I use to ship things:
+
+### Languages & Systems
+- **Core Languages:** Sh, Bash, HTML, CSS, JS, TS, Luau, C, C++, Rust.
+- **Graphics & Simulation:** P5.js, SDL3 Graphics Library for Simulations
+  
+### Frontend
+- **Frameworks:** SvelteKit 5, Next.js, React
+- **Styling & Components:** TailwindCSS, Shadcn, DaisyUI
+
+### Backend & Data
+- **Node Ecosystem:** NestJS, Express.js, Jest, Playwright
+- **Databases:** PostgreSQL, MongoDB
+- **Performance:** Redis
+
+### Architecture & Design
+- **High-Level:** System design, scalability, and performance trade-offs
+- **Low-Level:** API design, database schemas, and writing optimized code
+
+### Infrastructure & Tooling
+- **Servers & Hosting:** DigitalOcean VPS, Nginx reverse proxies, SSL via Certbot (Let's Encrypt)
+- **Containers:** Docker, Docker Compose
+- **Pipelines (CI/CD):** GitHub Actions, Jenkins
+- **Workflows:** Git, GitHub, and Kanban tracking via GitHub Projects
+
+*Check out my recent build logs and tutorials below.*

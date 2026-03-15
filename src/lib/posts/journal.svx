@@ -1,0 +1,16 @@
+---
+name: "Journal"
+description: "Raw thoughts, TILs, and university life."
+color: "#81A1C1FF"
+icon: "Book"
+order: 5
+---
+
+A mix-bag of everything else. It’s a timeline of what I’m doing, random "Today I Learned" snippets.
+
+### The Log
+- Monthly retrospectives
+- Raw snippets and quick fixes
+- Reflections on being a 20yo engineer
+
+*Low-filter updates.*

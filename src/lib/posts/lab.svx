@@ -1,0 +1,27 @@
+---
+name: "Lab"
+description: "Coursework, OS internals, and hands-on system experiments."
+color: "#A3BE8CFF"
+icon: "Terminal"
+order: 1
+---
+
+Welcome to **The Lab**. This is where I document my 4th-semester journey at FAST-NUCES. Expect a deep dive into low-level mechanics, core system concepts, and the day-to-day experiments that bridge the gap between theory and code.
+
+Here is a breakdown of the domains and coursework I am currently exploring:
+
+### Systems & Architecture:
+    * OS (Operating Systems)
+    * DLD (Digital Logic Design)
+    * COAL (Computer Organization & Assembly Language)
+    * AP (Applied Physics)
+### Data & Foundations:
+    * DS (Data Structures)
+    * DB (Databases)
+    * PF (Programming Fundamentals), OOP, ECS
+### Software Engineering: 
+    * ISE (Intro to Software Engineering)
+    * SDA (Software Design & Architecture)
+    * SRE (Software Requirements Engineering)
+
+> *Whether you're a fellow FASTian navigating these courses or just someone fascinated by how systems work under the hood, I hope you find something useful here.*

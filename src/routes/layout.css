@@ -1,0 +1,280 @@
+/* =========================================
+   Theme Variables (Nord Light)
+   ========================================= */
+:root {
+    --background: #ECEFF4; /* nord6 */
+    --foreground: #2E3440; /* nord0 */
+    --card: #E5E9F0; /* nord5 */
+    --card-foreground: #2E3440; /* nord0 */
+    --popover: #E5E9F0; /* nord5 */
+    --popover-foreground: #2E3440; /* nord0 */
+    --primary: #5E81AC; /* nord10 - deep frost */
+    --primary-foreground: #ECEFF4; /* nord6 */
+    --secondary: #D8DEE9; /* nord4 */
+    --secondary-foreground: #3B4252; /* nord1 */
+    --muted: #D8DEE9; /* nord4 */
+    --muted-foreground: #4C566A; /* nord3 */
+    --accent: #88C0D0; /* nord8 */
+    --accent-foreground: #2E3440; /* nord0 */
+    --destructive: #BF616A; /* nord11 - red */
+    --border: #D8DEE9; /* nord4 */
+    --input: #D8DEE9; /* nord4 */
+    --ring: #81A1C1; /* nord9 */
+    --radius: 0.5rem;
+    
+    /* Charts (Aurora palette) */
+    --chart-1: #BF616A; /* nord11 */
+    --chart-2: #D08770; /* nord12 */
+    --chart-3: #EBCB8B; /* nord13 */
+    --chart-4: #A3BE8C; /* nord14 */
+    --chart-5: #B48EAD; /* nord15 */
+
+    /* Sidebar */
+    --sidebar: #E5E9F0;
+    --sidebar-foreground: #2E3440;
+    --sidebar-primary: #5E81AC;
+    --sidebar-primary-foreground: #ECEFF4;
+    --sidebar-accent: #D8DEE9;
+    --sidebar-accent-foreground: #2E3440;
+    --sidebar-border: #D8DEE9;
+    --sidebar-ring: #81A1C1;
+}
+
+/* =========================================
+   Theme Variables (Nord Dark)
+   ========================================= */
+:root[data-theme="dark"] {
+    --background: #2E3440; /* nord0 */
+    --foreground: #ECEFF4; /* nord6 */
+    --card: #3B4252; /* nord1 */
+    --card-foreground: #E5E9F0; /* nord5 */
+    --popover: #3B4252; /* nord1 */
+    --popover-foreground: #E5E9F0; /* nord5 */
+    --primary: #88C0D0; /* nord8 - bright frost */
+    --primary-foreground: #2E3440; /* nord0 */
+    --secondary: #434C5E; /* nord2 */
+    --secondary-foreground: #ECEFF4; /* nord6 */
+    --muted: #434C5E; /* nord2 */
+    --muted-foreground: #D8DEE9; /* nord4 */
+    --accent: #81A1C1; /* nord9 */
+    --accent-foreground: #ECEFF4; /* nord6 */
+    --destructive: #BF616A; /* nord11 - red */
+    --border: #4C566A; /* nord3 */
+    --input: #4C566A; /* nord3 */
+    --ring: #88C0D0; /* nord8 */
+    
+    /* Sidebar */
+    --sidebar: #2E3440;
+    --sidebar-foreground: #ECEFF4;
+    --sidebar-primary: #88C0D0;
+    --sidebar-primary-foreground: #2E3440;
+    --sidebar-accent: #434C5E;
+    --sidebar-accent-foreground: #ECEFF4;
+    --sidebar-border: #4C566A;
+    --sidebar-ring: #88C0D0;
+}
+
+
+/* =========================================
+   Base Styles
+   ========================================= */
+body {
+    background-color: var(--background);
+    color: var(--foreground);
+    /* Switched to a more modern, readable stack for blogging */
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================
+   Shiki Syntax Highlighter
+   ========================================= */
+pre.shiki {
+    position: relative;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background-color: var(--card) !important; /* using card for slight contrast from base bg */
+    overflow-x: auto;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+pre.shiki span {
+    color: var(--shiki-light) !important;
+}
+
+:root[data-theme="dark"] pre.shiki {
+    background-color: var(--card) !important;
+    border: 1px solid var(--border);
+}
+
+:root[data-theme="dark"] pre.shiki span {
+    color: var(--shiki-dark) !important;
+}
+
+/* Helper for language tags */
+pre.shiki::after {
+    content: attr(data-language);
+    position: absolute;
+    top: 0;
+    right: 1rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    opacity: 0.8;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+/* Scrollbar styles */
+pre.shiki::-webkit-scrollbar { 
+    height: 8px; 
+}
+pre.shiki::-webkit-scrollbar-track { 
+    background: transparent; 
+}
+pre.shiki::-webkit-scrollbar-thumb { 
+    background: var(--border); 
+    border-radius: var(--radius); 
+}
+
+/* =========================================
+   Markdown / Prose Typography Baseline
+   ========================================= */
+.prose {
+    color: var(--foreground);
+    line-height: 1.8;
+    font-size: 1.125rem; /* 18px base for optimal reading */
+    max-width: 65ch; /* Optimal reading width for a blog */
+    margin: 0 auto; /* Centers the text block */
+}
+
+/* --- Headings --- */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+    color: var(--primary);
+    font-weight: 700;
+    line-height: 1.3;
+    margin-top: 2em;
+    margin-bottom: 0.75em;
+}
+
+.prose h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin-top: 0; 
+    margin-bottom: 1rem;
+    color: var(--foreground); /* H1 usually looks better matching main text rather than accent */
+}
+
+.prose h2 {
+    font-size: 1.875rem;
+    letter-spacing: -0.015em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.3em;
+}
+
+.prose h3 {
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+}
+
+.prose h4 {
+    font-size: 1.25rem;
+}
+
+/* --- Paragraphs & Links --- */
+.prose p {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+
+.prose a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 4px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.prose a:hover {
+    text-decoration-color: var(--primary);
+    color: var(--accent);
+}
+
+/* --- Lists --- */
+.prose ul,
+.prose ol {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-left: 1.625em;
+}
+
+.prose li {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.prose li::marker {
+    color: var(--primary);
+    font-weight: bold;
+}
+
+/* --- Blockquotes --- */
+.prose blockquote {
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+    margin-left: 0;
+    padding-left: 1.25em;
+    border-left: 4px solid var(--primary);
+    color: var(--muted-foreground);
+    font-style: italic;
+    background-color: var(--muted);
+    padding: 1.25em;
+    border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.prose blockquote p {
+    margin: 0; /* Remove default p margins inside blockquotes */
+}
+
+/* --- Inline Code --- */
+.prose :not(pre) > code {
+    background-color: var(--muted);
+    color: var(--primary); 
+    padding: 0.2em 0.4em;
+    border-radius: calc(var(--radius) / 2);
+    font-size: 0.875em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    border: 1px solid var(--border);
+}
+
+/* --- Horizontal Rules --- */
+.prose hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin-top: 3em;
+    margin-bottom: 3em;
+}
+
+/* --- Images --- */
+.prose img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-top: 2em;
+    margin-bottom: 2em;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}

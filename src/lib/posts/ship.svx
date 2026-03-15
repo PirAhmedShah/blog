@@ -1,0 +1,17 @@
+---
+name: "Ship"
+description: "Building Rodevsy and other full-stack projects."
+color: "#BF616AFF"
+icon: "Rocket"
+order: 2
+---
+
+Everything related to the products I'm actually shipping. This is the "DevLog".
+
+### Currently Shipping
+- **Rodevsy:** Ecosystem for Roblox Game Developers & Studio
+
+### Shipped
+- **MindSync:** Kahoot-like real-time Presentation Platform
+
+*Real-world implementation details.*
