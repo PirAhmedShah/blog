@@ -1,42 +1,50 @@
-# sv
+# [BLOG](https://github.com/PirAhmedShah/blog)
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Personal engineering blog and digital garden. This repository contains the source code for my blog, where I document my journey as a 4th-semester CS student at **FAST-NUCES**, technical deep dives into **Svelte 5**, and the development of **RoDevsy**.
 
-## Creating a project
+## The Stack
 
-If you're seeing this, you've probably already done this step. Congrats!
+Built with a focus on high-performance frontend and a "KISS" (Keep It Simple, Stupid) philosophy.
+- **Framework:** SvelteKit 5 (utilizing Runes)
+- **Content:** Mdsvex (Markdown for Svelte)
+- **Syntax Highlighting:** Shiki
+- **Styling:** Tailwind CSS
+- **Package Manager:** pnpm
 
-```sh
-# create a new project
-npx sv create my-app
-```
+## The Grid (Categories)
 
-To recreate this project with the same configuration:
+The blog is structured into five core areas:
+- **The Lab:** Coursework from FAST (OS, Networking, Linux).
+- **Ship:** Building RoDevsy and full-stack implementation notes.
+- **The Stack:** Web dev tutorials, Svelte 5 patterns, and Docker/DevOps.
+- **Scripts:** Specialized Luau engineering and Roblox ecosystem security.
+- **Journal:** Weekly retrospectives and raw "Today I Learned" snippets.
 
-```sh
-# recreate this project
-pnpm dlx sv@0.12.7 create --template demo --types ts --add prettier eslint sveltekit-adapter="adapter:static" mdsvex --install pnpm blog
-```
+## Local Development
 
-## Developing
+1. **Clone the repo:**
+   `git clone https://github.com/PirAhmedShah/blog.git`
+   `cd blog`
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+2. **Install dependencies:**
+   `pnpm install`
 
-```sh
-npm run dev
+3. **Start the dev server:**
+   `pnpm dev`
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## Writing a Post
 
-## Building
+New entries are added as `.svx` files in the `$lib/posts/` directory. Each file requires standard frontmatter:
 
-To create a production version of your app:
+---
+title: "Post Title"
+description: "Brief summary of the post"
+date: "2026-03-15"
+author: "Pir Ahmed Shah"
+tags: ["svelte", "backend", "fast-nuces"]
+---
 
-```sh
-npm run build
-```
+# Your Content Here
 
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## License
+MIT © Pir Ahmed Shah
