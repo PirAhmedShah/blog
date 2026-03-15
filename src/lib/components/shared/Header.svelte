@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
+	import { base, resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { type Category } from '$lib/types/category.type.js';
 	import ThemeToggle from '../ui/ThemeToggle.svelte';
@@ -12,7 +12,7 @@
 </script>
 
 <header>
-	<a href={resolve('/')} class="brand"> PIR AHMED SHAH </a>
+	<a href={resolve('/')}> <img src="{base}/logo.svg" alt="Brand" height={32} /> </a>
 
 	<nav aria-label="Category navigation">
 		<ul>
@@ -39,16 +39,6 @@
 		align-items: center;
 		padding: 1rem 2rem; /* Added vertical padding for better breathing room */
 		border-bottom: 1px solid var(--border); /* Optional: Adds a subtle separator */
-	}
-
-	.brand {
-		font-size: 0.75rem;
-		font-weight: 800;
-		width: 8ch;
-		text-align: center;
-		text-decoration: none;
-		color: var(--primary);
-		letter-spacing: -0.05em;
 	}
 
 	header ul {
