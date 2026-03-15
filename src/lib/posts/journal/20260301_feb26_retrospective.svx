@@ -1,0 +1,34 @@
+---
+title: "Retrospective: February 2026"
+description: "A look back at life, progress, and technical wins."
+date: "2026-03-01"
+author: "Pir Ahmed Shah"
+tags: 
+     - retrospective
+     - monthly
+---
+
+# February Overview
+
+February 2026 has been a very productive month for me and my RoDevSy project. I've successfully deployed its backend services (Nginx, Postgresql, Redis, NestJS, Docker Compose) on DigitalOcean VPS(Thanks to GitHub Student Pack), Domain from name.com (rodevsy.app). 
+
+## Shipping (Rodevsy & Projects)
+- **Feature:**
+  - Finished implementing robust JWT authentication using Redis for user sessions (Whitelisting Refresh Token JTI and Blacklisting of AccessToken JTI on logout).
+- **Win:** Deployment of backend services on DigitalOcean successfully.
+- **Win (Bigger):** After building High Fidelity Prototype on Next.js (Since I have experience with that), I decided to migrate to SvelteKit5. Next.js was the wrong Framework for my Rodevsy Project.
+
+## The Lab (University & Learning)
+- **Books I'm actively Reading:**
+  - Silberschatz's OS Concepts.
+  - Pressman's Software Engineering: A Practitioner's Approach.
+- **Exams:** piece of cake except for Pak Studies which is at the mercy of my hand-writing.
+
+## The Stack
+- **Svelte 5:** Learned that SvelteKit5 is awesome and ergonomic compared to React-Based Frameworks which are purely Javascript making code unnecessarily complex.
+- **Tooling:** Switch from `npm` to `pnpm` and it saves a lot of disk space and network bandwidth (Thanks to symlink, instead of installing dependencies every time for each new project, It keeps one gobal dependancy copy and link it everywhere it is reused).
+- **ERD For RoDevSy:** finished my initial ER Diagram for RoDevSy platform, I learned a lot of advanced concepts in ERD thanks to this like Mutually Exclusive Relations [Check it out!](https://www.figma.com/board/qgXCtezteLh5o01Th0UMQ4/Rodevsy?node-id=0-1&p=f&t=n3I1c4t1NTsbVo4Q-0) 
+- **Learned SvelteKit:** SvelteKit5 is by far the best framework I've worked on. Unlike React.js/Next.js, SvelteKit5 is more ergonomic far easier to write components than Next.js. Absolutely loved the way a single component can have logic, structure and styling all encapsulated.
+
+## The Friction
+- **Time Management:** Currently I'm operating impulsively with majority of my time being eaten working on Rodevsy.
