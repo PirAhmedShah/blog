@@ -1,0 +1,42 @@
+---
+title: "Weekly Log: 11 - February 2026"
+description: "Weekly retrospective and prospective."
+date: "2026-03-16"
+author: "Pir Ahmed Shah"
+tags: 
+     - weekly
+     - log
+---
+
+# Weekly Retrospective
+This week has been quite productive and blessed with these rains! I created this blog website, deep-dived into Linux kernel internals, and focused on the RoDevSy project.
+
+### Technical Progress
+- **RoDevSy:** Added a database backup cron job to ensure data reliability.
+- **Blog:** Created this blog website in SvelteKit 5 using MDsveX for markdown processing, Shiki for syntax code highlighting, and the static adapter for SSG.
+
+### Academic Check-in (FAST)
+- **Coursework:** Midterm OS and DB lab exams finished. Extremely easy.
+- **Books:** Focusing on the OS book; it is an absolute gem.
+
+### Key Learning
+- This week I learned that at the end of the day, foundational knowledge is what makes you stand out from others.
+
+---
+
+# Weekly Prospective
+Next week will be the week of CI/CD pipeline setup using either Jenkins (which I don't think I should, but I will look at the trade-offs) or GitHub Actions. Right now, I'm manually fetching the GitHub repo, building it on the VPS, and hosting it on an HTTP port. Extremely stupid. I'll now configure it to create images on a Docker Registry, which are then pulled by the VPS and restarted automatically.
+
+### Primary Goals
+- [ ] **RoDevSy:** Successfully implement and test the CI/CD pipeline using GitHub Actions and a Docker Registry.
+- [ ] **University:** Complete the upcoming reading assignments for OS and start preparing for the next wave of database projects.
+- [ ] **Blog:** 
+  - Write and publish a detailed post about my migration from Next.js to SvelteKit 5 and why it was the right move.
+  - A post on why Remote Functions are bad and why you should avoid it in Roblox. How to use Remote Events efficiently.
+  - A post on Client-Server model of Roblox. How Network Ownership of model works.
+  - 
+### Risks & Blockers
+- Configuring GitHub Actions to communicate securely with the DigitalOcean VPS might introduce unexpected networking or permission blockers.
+
+
+> "Keep shipping, keep learning."
