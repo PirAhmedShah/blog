@@ -8,7 +8,7 @@ order: 5
 
 A mix-bag of everything else. It’s a timeline of what I’m doing, random "Today I Learned" snippets.
 
-### The Log
+## The Log
 - Monthly retrospectives
 - Raw snippets and quick fixes
 - Reflections on being a 20yo engineer

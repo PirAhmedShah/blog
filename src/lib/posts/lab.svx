@@ -10,16 +10,16 @@ Welcome to **The Lab**. This is where I document my 4th-semester journey at FAST
 
 Here is a breakdown of the domains and coursework I am currently exploring:
 
-### Systems & Architecture:
+## Systems & Architecture:
     * OS (Operating Systems)
     * DLD (Digital Logic Design)
     * COAL (Computer Organization & Assembly Language)
     * AP (Applied Physics)
-### Data & Foundations:
+## Data & Foundations:
     * DS (Data Structures)
     * DB (Databases)
     * PF (Programming Fundamentals), OOP, ECS
-### Software Engineering: 
+## Software Engineering: 
     * ISE (Intro to Software Engineering)
     * SDA (Software Design & Architecture)
     * SRE (Software Requirements Engineering)

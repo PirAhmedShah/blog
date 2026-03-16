@@ -8,7 +8,7 @@ order: 4
 
 I've been in the Roblox space for a long time. This category covers the technical side of Luau engineering that you don't usually find on the DevForum.
 
-### Technical Luau
+## Technical Luau
 - Custom module loaders and DataStore patterns
 - Anti-cheat logic and remote security
 - Scaling Roblox-based infrastructure

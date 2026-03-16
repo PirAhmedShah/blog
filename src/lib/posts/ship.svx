@@ -8,10 +8,10 @@ order: 2
 
 Everything related to the products I'm actually shipping. This is the "DevLog".
 
-### Currently Shipping
+## Currently Shipping
 - **Rodevsy:** Ecosystem for Roblox Game Developers & Studio
 
-### Shipped
+## Shipped
 - **MindSync:** Kahoot-like real-time Presentation Platform
 
 *Real-world implementation details.*

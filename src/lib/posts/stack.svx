@@ -10,24 +10,24 @@ Building is where the fun happens. This space is all about getting my hands dirt
 
 Here is the tech I use to ship things:
 
-### Languages & Systems
+## Languages & Systems
 - **Core Languages:** Sh, Bash, HTML, CSS, JS, TS, Luau, C, C++, Rust.
 - **Graphics & Simulation:** P5.js, SDL3 Graphics Library for Simulations
   
-### Frontend
+## Frontend
 - **Frameworks:** SvelteKit 5, Next.js, React
 - **Styling & Components:** TailwindCSS, Shadcn, DaisyUI
 
-### Backend & Data
+## Backend & Data
 - **Node Ecosystem:** NestJS, Express.js, Jest, Playwright
 - **Databases:** PostgreSQL, MongoDB
 - **Performance:** Redis
 
-### Architecture & Design
+## Architecture & Design
 - **High-Level:** System design, scalability, and performance trade-offs
 - **Low-Level:** API design, database schemas, and writing optimized code
 
-### Infrastructure & Tooling
+## Infrastructure & Tooling
 - **Servers & Hosting:** DigitalOcean VPS, Nginx reverse proxies, SSL via Certbot (Let's Encrypt)
 - **Containers:** Docker, Docker Compose
 - **Pipelines (CI/CD):** GitHub Actions, Jenkins
