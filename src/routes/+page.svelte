@@ -78,7 +78,6 @@
 			border-color 0.3s ease;
 		display: flex;
 		flex-direction: column;
-		/* Use the metadata color on hover */
 		border-top: 4px solid transparent;
 	}
 

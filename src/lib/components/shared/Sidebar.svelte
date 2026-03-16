@@ -11,7 +11,6 @@
 	let activeId = $state<string>('');
 
 	$effect(() => {
-		// 1. Re-run this effect whenever the URL changes
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const currentPath = page.url.pathname;
 
@@ -24,10 +23,8 @@
 		domHeadings.forEach((el) => {
 			const text = el.textContent || '';
 
-			// If MDsveX didn't give the heading an ID, we generate one on the fly
 			let id = el.id;
 			if (!id) {
-				// Converts "My Cool Heading" into "my-cool-heading"
 				id = text
 					.toLowerCase()
 					.replace(/[^a-z0-9]+/g, '-')
@@ -35,14 +32,12 @@
 				el.id = id;
 			}
 
-			// Get the number from "H2", "H3", etc.
 			const level = parseInt(el.tagName.replace('H', ''), 10);
 			extracted.push({ id, text, level });
 		});
 
 		headings = extracted;
 
-		// 3. Intersection Observer to highlight the heading currently on screen
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
@@ -51,7 +46,7 @@
 					}
 				});
 			},
-			{ rootMargin: '0px 0px -80% 0px' } // Triggers when heading hits the top 20% of the screen
+			{ rootMargin: '0px 0px -80% 0px' }
 		);
 
 		domHeadings.forEach((el) => observer.observe(el));
@@ -84,10 +79,12 @@
 
 <style>
 	.sidebar {
-		padding: 1rem;
+		outline: 1px solid blue !important;
+
+		padding: 1vw;
 		position: sticky;
-		top: 2rem; /* Keeps it on screen as you scroll down */
-		max-height: calc(100vh - 4rem);
+		top: 0;
+		max-height: 100vh;
 		overflow-y: auto;
 	}
 
@@ -127,7 +124,6 @@
 		opacity: 1;
 	}
 
-	/* Active state injected by the Intersection Observer */
 	.toc-link.active {
 		color: var(--primary);
 		opacity: 1;

@@ -23,14 +23,7 @@
 				>
 					<Github size={20} />
 				</a>
-				<!-- <a
-					href="NO twitter page"
-					target="_blank"
-					rel="noreferrer"
-					aria-label="Twitter"
-				>
-					<Twitter size={20} />
-				</a> -->
+
 				<a
 					href="https://linkedin.com/in/pirahmedshah"
 					target="_blank"
@@ -69,7 +62,6 @@
 		gap: 2rem;
 	}
 
-	/* Identity */
 	.brand-section {
 		display: flex;
 		align-items: center;
@@ -105,7 +97,6 @@
 		color: var(--muted-foreground);
 	}
 
-	/* Navigation */
 	.nav-section {
 		display: flex;
 		flex-direction: column;
@@ -131,11 +122,10 @@
 
 	.social-links a:hover {
 		color: var(--primary);
-		background: var(--border); /* Subtle background highlight on hover */
-		transform: translateY(-2px); /* Slight lift effect */
+		background: var(--border);
+		transform: translateY(-2px);
 	}
 
-	/* Bottom Copyright */
 	.footer-bottom {
 		max-width: 1000px;
 		margin: 3rem auto 0;
@@ -146,7 +136,6 @@
 		font-size: 0.85rem;
 	}
 
-	/* Mobile Responsiveness */
 	@media (max-width: 640px) {
 		.footer-container {
 			flex-direction: column;

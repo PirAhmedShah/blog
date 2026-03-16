@@ -20,7 +20,7 @@
 <style>
 	.page-wrapper {
 		display: grid;
-		grid-template-columns: 1fr 0.2fr;
+		grid-template-columns: 0.75fr 0.25fr;
 		margin: 0 auto;
 	}
 

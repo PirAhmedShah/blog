@@ -34,11 +34,12 @@
 
 <style>
 	header {
+		transition: all 0.3 ease;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 1rem 2rem; /* Added vertical padding for better breathing room */
-		border-bottom: 1px solid var(--border); /* Optional: Adds a subtle separator */
+		padding: 1vw 2vw;
+		border-bottom: 1px solid var(--border);
 	}
 
 	header ul {
@@ -46,14 +47,12 @@
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		gap: 1.5rem;
+		gap: 2vw;
 	}
 
-	/* Links styling */
 	ul li a {
-		color: var(--muted-foreground); /* Slightly muted for better contrast with brand */
+		color: var(--muted-foreground);
 		text-decoration: none;
-		transition: color 0.3s ease;
 	}
 
 	ul li a:hover,

@@ -40,29 +40,31 @@
 		</div>
 	</div>
 {/key}
+\
 
 <style>
-	/* Wrap everything */
-	.post-wrapper {
-		width: 100%;
+	:global(*) {
+		box-sizing: border-box;
 	}
 
-	/* === HERO HEADER STYLES === */
+	.post-wrapper {
+		width: 100%;
+		overflow-x: hidden;
+	}
+
 	.hero-header {
 		min-height: 400px;
 		display: flex;
-		align-items: flex-end; /* Pushes content to the bottom of the hero */
+		align-items: flex-end;
 		justify-content: center;
 
-		/* Background properties */
 		background-size: cover;
 		background-position: center;
 		background-repeat: no-repeat;
-		background-color: var(--card); /* Fallback color if image 404s */
+		background-color: var(--card);
 
-		/* Optional: Add a subtle bottom border to transition into the page */
 		border-bottom: 1px solid var(--border);
-		padding: 4rem 1.5rem 3rem 1.5rem;
+		padding: 4rem 1rem 2rem 1rem;
 	}
 
 	.hero-content {
@@ -74,52 +76,59 @@
 	}
 
 	.meta-tag {
-		padding: 0.5rem 1rem;
-	}
-	.hero-header .meta-tag {
+		display: inline-block;
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.1rem;
-		font-size: 1.5rem;
+		font-size: clamp(1rem, 4vw, 1.5rem);
 		margin-bottom: 1rem;
-		/* Dropshadow to make the colored text pop against the image */
-		text-shadow: 0 2px 4px inherit;
+		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+		padding: 0.5rem 1rem;
 	}
 
 	.hero-header h1 {
-		font-size: 3.5rem; /* Made slightly larger for hero impact */
+		font-size: clamp(2.25rem, 8vw, 3.5rem);
 		line-height: 1.1;
 		margin-bottom: 1.25rem;
+
+		overflow-wrap: break-word;
+		word-wrap: break-word;
+		hyphens: auto;
 	}
 
 	.hero-header .subtitle {
-		font-size: 1.25rem;
+		font-size: clamp(1.1rem, 3vw, 1.25rem);
 		margin-bottom: 1.5rem;
-		max-width: 90%;
+		max-width: 600px;
+		line-height: 1.5;
 	}
 
 	.hero-header time {
 		font-size: 0.95rem;
 		font-weight: 500;
+		opacity: 0.9;
 	}
 
-	/* === POST CONTENT STYLES === */
 	.post-container {
 		max-width: 750px;
-		margin: 4rem auto;
-		padding: 0 1.5rem;
+		margin: clamp(2rem, 8vw, 4rem) auto;
+		padding: 0 1.25rem;
 	}
 
-	/* Target the rendered markdown content safely */
+	.post-content {
+		width: 100%;
+	}
+
 	.post-content :global(h2) {
-		font-size: 2rem;
+		font-size: clamp(1.5rem, 5vw, 2rem);
 		margin-top: 2.5rem;
 		margin-bottom: 1rem;
 		color: var(--foreground);
+		overflow-wrap: break-word;
 	}
 
 	.post-content :global(h3) {
-		font-size: 1.5rem;
+		font-size: clamp(1.25rem, 4vw, 1.5rem);
 		margin-top: 2rem;
 		margin-bottom: 1rem;
 		color: var(--foreground);
@@ -128,8 +137,9 @@
 	.post-content :global(p) {
 		line-height: 1.8;
 		margin-bottom: 1.5rem;
-		font-size: 1.1rem;
+		font-size: clamp(1rem, 2.5vw, 1.1rem);
 		color: var(--foreground);
+		overflow-wrap: break-word;
 	}
 
 	.post-content :global(a) {
@@ -156,7 +166,17 @@
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 		padding: 1.25rem;
-		overflow-x: auto;
 		margin-bottom: 1.5rem;
+
+		max-width: 100%;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	@media (max-width: 480px) {
+		.hero-header {
+			min-height: 320px;
+			padding-top: 2rem;
+		}
 	}
 </style>
