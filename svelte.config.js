@@ -61,7 +61,8 @@ const config = {
 		paths: {
 			base: '/blog',
 			relative: true
-		}
+		},
+		inlineStyleThreshold: 2048
 	}
 };
 
