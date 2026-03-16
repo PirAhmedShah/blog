@@ -4,6 +4,7 @@ import type { Component } from "svelte";
 
 export const prerender = true;
 export const ssr = true;
+export const trailingSlash = 'always';
 
 export const load = async () => {
     const filesMetadata = import.meta.glob<CategoryMetadata>('/src/lib/posts/*.svx', {
