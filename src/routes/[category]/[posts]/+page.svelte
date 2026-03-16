@@ -54,7 +54,6 @@
 		</div>
 	</div>
 {/key}
-\
 
 <style>
 	:global(*) {
