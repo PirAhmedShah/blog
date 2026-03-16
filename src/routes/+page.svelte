@@ -58,7 +58,7 @@
 				{@const Icon = Icons[category.metadata.icon as keyof typeof Icons.icons]}
 
 				<a
-					href={resolve(`/${category.slug}`)}
+					href={resolve(`/${category.slug}/`)}
 					class="category-card"
 					style="--card-primary: {category.metadata.color}"
 				>

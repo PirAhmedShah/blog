@@ -19,7 +19,7 @@
 			{#each categories as category (category.slug)}
 				{@const isActive = category.slug === activeSlug}
 				<li class:active={isActive}>
-					<a href={resolve(`/${category.slug}`)} aria-current={isActive ? 'page' : undefined}>
+					<a href={resolve(`/${category.slug}/`)} aria-current={isActive ? 'page' : undefined}>
 						{category.metadata.name}
 					</a>
 				</li>

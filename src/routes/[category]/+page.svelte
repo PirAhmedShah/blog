@@ -52,7 +52,7 @@
 		{#if posts.length > 0}
 			<div class="grid-container">
 				{#each posts as post (post.slug)}
-					<a href={resolve(`/${category.slug}/${post.slug}`)} class="card">
+					<a href={resolve(`/${category.slug}/${post.slug}/`)} class="card">
 						<div class="card-content">
 							<h3>{post.metadata.title}</h3>
 							<p>{post.metadata.description}</p>
