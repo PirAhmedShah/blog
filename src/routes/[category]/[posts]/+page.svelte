@@ -13,16 +13,48 @@
 
 <svelte:head>
 	<title>{meta.title} | {category.metadata.name} | Pir Ahmed Shah's Blog</title>
+	<meta name="title" content="{meta.title} | {category.metadata.name} | Pir Ahmed Shah's Blog" />
 	<meta name="description" content={meta.description} />
-	<meta property="og:title" content={meta.title} />
-	<meta property="og:description" content={meta.description} />
+	<meta name="author" content={meta.author} />
+	<link
+		rel="canonical"
+		href="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.posts}/"
+	/>
+
+	<meta property="og:type" content="article" />
+	<meta property="og:site_name" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		property="og:url"
-		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.posts}"
+		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.posts}/"
 	/>
-	<meta property="og:type" content="article" />
+	<meta property="og:title" content="{meta.title} | {category.metadata.name}" />
+	<meta property="og:description" content={meta.description} />
+	<meta
+		property="og:image"
+		content="https://pirahmedshah.github.io/blog/images/thumbnails/{page.params.category}/{page
+			.params.posts}.webp"
+	/>
+	<meta property="og:image:alt" content={meta.title} />
+	<meta property="og:locale" content="en_US" />
 	<meta property="article:published_time" content={meta.date} />
 	<meta property="article:author" content={meta.author} />
+	<meta property="article:section" content={category.metadata.name} />
+
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@pirahmedshah" />
+	<meta name="twitter:creator" content="@pirahmedshah" />
+	<meta
+		name="twitter:url"
+		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.posts}/"
+	/>
+	<meta name="twitter:title" content="{meta.title} | {category.metadata.name}" />
+	<meta name="twitter:description" content={meta.description} />
+	<meta
+		name="twitter:image"
+		content="https://pirahmedshah.github.io/blog/images/thumbnails/{page.params.category}/{page
+			.params.posts}.webp"
+	/>
+	<meta name="twitter:image:alt" content={meta.title} />
 </svelte:head>
 
 {#key page.url.pathname}

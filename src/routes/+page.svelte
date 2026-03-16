@@ -7,6 +7,44 @@
 	const categories = $derived(data.categories);
 </script>
 
+<svelte:head>
+	<title>Pir Ahmed Shah | Dev Blog</title>
+	<meta name="title" content="Pir Ahmed Shah | Dev Blog" />
+	<meta
+		name="description"
+		content="Engineering logs, Svelte 5 deep dives, and CS fundamentals from a 1st-year student at FAST-NUCES."
+	/>
+	<meta name="author" content="Pir Ahmed Shah" />
+	<link rel="canonical" href="https://pirahmedshah.github.io/blog/" />
+
+	<meta property="og:type" content="website" />
+	<meta property="og:site_name" content="Pir Ahmed Shah | Dev Blog" />
+	<meta property="og:url" content="https://pirahmedshah.github.io/blog/" />
+	<meta property="og:title" content="Pir Ahmed Shah | Dev Blog" />
+	<meta
+		property="og:description"
+		content="Engineering logs, Svelte 5 deep dives, and CS fundamentals from a 1st-year student at FAST-NUCES."
+	/>
+	<meta property="og:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
+	<meta property="og:image:type" content="image/png" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="og:image:alt" content="Pir Ahmed Shah Dev Blog" />
+	<meta property="og:locale" content="en_US" />
+
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@pirahmedshah" />
+	<meta name="twitter:creator" content="@pirahmedshah" />
+	<meta name="twitter:url" content="https://pirahmedshah.github.io/blog/" />
+	<meta name="twitter:title" content="Pir Ahmed Shah | Dev Blog" />
+	<meta
+		name="twitter:description"
+		content="Engineering logs, Svelte 5 deep dives, and CS fundamentals from a 1st-year student at FAST-NUCES."
+	/>
+	<meta name="twitter:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
+	<meta name="twitter:image:alt" content="Pir Ahmed Shah Dev Blog" />
+</svelte:head>
+
 <main>
 	<section class="hero" in:fade={{ duration: 600 }}>
 		<h1>Welcome to my digital garden.</h1>

@@ -12,11 +12,31 @@
 
 <svelte:head>
 	<title>{category.metadata.name} | Pir Ahmed Shah's Blog</title>
+	<meta name="title" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
 	<meta name="description" content={category.metadata.description} />
-	<meta property="og:title" content={category.metadata.name} />
+	<meta name="author" content="Pir Ahmed Shah" />
+	<link rel="canonical" href="https://pirahmedshah.github.io/blog/{page.params.category}/" />
+
+	<meta property="og:type" content="website" />
+	<meta property="og:site_name" content="Pir Ahmed Shah | Dev Blog" />
+	<meta property="og:url" content="https://pirahmedshah.github.io/blog/{page.params.category}/" />
+	<meta property="og:title" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
 	<meta property="og:description" content={category.metadata.description} />
-	<meta property="og:url" content="https://pirahmedshah.github.io/blog/{page.params.category}" />
-	<meta property="og:type" content="page" />
+	<meta property="og:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
+	<meta property="og:image:type" content="image/png" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="og:image:alt" content="{category.metadata.name} — Pir Ahmed Shah's Blog" />
+	<meta property="og:locale" content="en_US" />
+
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@pirahmedshah" />
+	<meta name="twitter:creator" content="@pirahmedshah" />
+	<meta name="twitter:url" content="https://pirahmedshah.github.io/blog/{page.params.category}/" />
+	<meta name="twitter:title" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
+	<meta name="twitter:description" content={category.metadata.description} />
+	<meta name="twitter:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
+	<meta name="twitter:image:alt" content="{category.metadata.name} — Pir Ahmed Shah's Blog" />
 </svelte:head>
 
 {#key page.url.pathname}
