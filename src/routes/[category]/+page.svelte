@@ -10,6 +10,15 @@
 	const CategoryComponent = $derived(category.content);
 </script>
 
+<svelte:head>
+	<title>{category.metadata.name} | Pir Ahmed Shah's Blog</title>
+	<meta name="description" content={category.metadata.description} />
+	<meta property="og:title" content={category.metadata.name} />
+	<meta property="og:description" content={category.metadata.description} />
+	<meta property="og:url" content="https://pirahmedshah.github.io/blog/{page.params.category}" />
+	<meta property="og:type" content="page" />
+</svelte:head>
+
 {#key page.url.pathname}
 	<main class="container" in:fade={{ duration: 300 }}>
 		<article class="category-header prose">

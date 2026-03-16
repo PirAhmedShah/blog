@@ -11,6 +11,20 @@
 	);
 </script>
 
+<svelte:head>
+	<title>{meta.title} | {category.metadata.name} | Pir Ahmed Shah's Blog</title>
+	<meta name="description" content={meta.description} />
+	<meta property="og:title" content={meta.title} />
+	<meta property="og:description" content={meta.description} />
+	<meta
+		property="og:url"
+		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.posts}"
+	/>
+	<meta property="og:type" content="article" />
+	<meta property="article:published_time" content={meta.date} />
+	<meta property="article:author" content={meta.author} />
+</svelte:head>
+
 {#key page.url.pathname}
 	<div class="post-wrapper" in:fade={{ duration: 300 }}>
 		<header

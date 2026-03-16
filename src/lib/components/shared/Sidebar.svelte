@@ -79,8 +79,6 @@
 
 <style>
 	.sidebar {
-		outline: 1px solid blue !important;
-
 		padding: 1vw;
 		position: sticky;
 		top: 0;

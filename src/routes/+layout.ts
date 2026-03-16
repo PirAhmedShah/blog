@@ -2,6 +2,9 @@ import type { Category, CategoryMetadata } from "$lib/types/category.type";
 import { error } from "@sveltejs/kit";
 import type { Component } from "svelte";
 
+export const prerender = true;
+export const ssr = true;
+
 export const load = async () => {
     const filesMetadata = import.meta.glob<CategoryMetadata>('/src/lib/posts/*.svx', {
         eager: true,
