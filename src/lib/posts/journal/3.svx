@@ -1,0 +1,53 @@
+---
+title: "TIL: Why Having a Blog Matters More Than I Thought"
+description: "A short reflection on why writing publicly is worth the effort."
+date: "2026-03-19"
+author: "Pir Ahmed Shah"
+tags:
+     - til
+     - writing
+---
+
+# TIL: Why Having a Blog Matters More Than I Thought
+
+## What I was doing
+
+Setting up this blog, wiring up categories, posts, metadata validation, slug
+routing, and at some point I stopped and asked myself: *why am I building
+this at all?*
+
+## What I discovered
+
+A blog is a long-running public record of how you think. Not just what you
+know, but how you reason, what you find interesting, and how that changes over
+time. That is different from a portfolio, a resume, or a GitHub profile.
+
+Writing forces clarity in a way that thinking alone does not. You can hold a
+fuzzy understanding of something in your head indefinitely. The moment you
+try to write it down, the gaps show up immediately. The act of publishing
+raises the stakes just enough to make you fill those gaps.
+
+There is also a compounding effect. A single post is nearly worthless. Fifty
+posts written consistently over a year become a searchable, linkable record
+of your growth that works for you while you are not. People find it, reference
+it, and form an impression of you before they have ever spoken to you.
+
+## Why it matters
+
+Most knowledge work is invisible. Code gets merged and forgotten, decisions
+get made in calls that leave no trace. A blog makes your thinking visible and
+permanent, which is useful both for others and for your future self.
+
+It also lowers the barrier to starting conversations. A post you wrote six
+months ago can be the reason someone reaches out today.
+
+## Example
+
+This blog itself. The investment in building the routing, the validation, the
+slug logic, none of that matters if nothing gets written. The infrastructure
+is only as valuable as what it publishes.
+
+## References
+
+- *Show Your Work* by Austin Kleon
+- [You Should Write Blogs](https://sites.google.com/site/steveyegge2/you-should-write-blogs) by Steve Yegge
