@@ -13,7 +13,7 @@
 	<meta name="title" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		name="description"
-		content="Technical writing on systems programming, web engineering, and computer science fundamentals by a 2nd-year CS student at FAST-NUCES."
+		content="A dev blog by Pir Ahmed Shah — CS student at FAST-NUCES. Writing about systems, web engineering, game scripting, and the journey of learning in public."
 	/>
 	<meta name="author" content="Pir Ahmed Shah" />
 	<link rel="canonical" href="https://pirahmedshah.github.io/blog/" />
@@ -23,7 +23,7 @@
 	<meta property="og:title" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		property="og:description"
-		content="Technical writing on systems programming, web engineering, and computer science fundamentals by a 2nd-year CS student at FAST-NUCES."
+		content="A dev blog by Pir Ahmed Shah — CS student at FAST-NUCES. Writing about systems, web engineering, game scripting, and the journey of learning in public."
 	/>
 	<meta property="og:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
 	<meta property="og:image:type" content="image/png" />
@@ -38,7 +38,7 @@
 	<meta name="twitter:title" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		name="twitter:description"
-		content="Technical writing on systems programming, web engineering, and computer science fundamentals by a 2nd-year CS student at FAST-NUCES."
+		content="A dev blog by Pir Ahmed Shah — CS student at FAST-NUCES. Writing about systems, web engineering, game scripting, and the journey of learning in public."
 	/>
 	<meta name="twitter:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
 	<meta name="twitter:image:alt" content="Pir Ahmed Shah Dev Blog" />
@@ -46,18 +46,18 @@
 
 <main>
 	<section class="hero" in:fade={{ duration: 600 }}>
-		<p class="eyebrow">Pir Ahmed Shah</p>
-		<h1>Welcome to my<br />digital garden.</h1>
+		<p class="eyebrow">Pir Ahmed Shah — CS Student at FAST-NUCES</p>
+		<h1>Writing about what<br />I'm learning to build.</h1>
 		<p class="subtitle">
-			Engineering logs, Svelte 5 deep dives, and CS fundamentals from a 1st-year student at
-			FAST-NUCES.
+			A technical blog covering systems programming, web engineering, game scripting, and university
+			life. I've been writing code for a while, this is where I document the process.
 		</p>
 	</section>
 
 	<div class="divider"></div>
 
 	<section class="categories" in:fade={{ duration: 600, delay: 200 }}>
-		<p class="section-label">Explore categories</p>
+		<p class="section-label">Browse by category</p>
 		<div class="grid">
 			{#each categories as category (category.slug)}
 				{@const Icon = Icons[category.metadata.icon as keyof typeof Icons.icons]}
