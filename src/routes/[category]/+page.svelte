@@ -10,9 +10,8 @@
 	const tags = $derived(data.tags);
 	const CategoryContent = $derived(data.content);
 
-	let selectedTags = $state<Set<string>>(new Set());
+	let selectedTags = new SvelteSet();
 
-	// data.posts is already resolved in the load fn — no need to re-derive from postsByCategory
 	const posts = $derived(
 		selectedTags.size === 0
 			? data.posts
@@ -20,11 +19,8 @@
 	);
 
 	function toggleTag(tag: string) {
-		const next = new SvelteSet(selectedTags);
-		if (next.has(tag)) next.delete(tag);
-		else next.add(tag);
-
-		selectedTags = next;
+		if (selectedTags.has(tag)) selectedTags.delete(tag);
+		else selectedTags.add(tag);
 	}
 </script>
 
@@ -77,9 +73,7 @@
 				<p class="filter-label">
 					Filter by tag
 					{#if selectedTags.size > 0}
-						<button class="clear-btn" onclick={() => (selectedTags = new Set())}>
-							Clear all ×
-						</button>
+						<button class="clear-btn" onclick={() => selectedTags.clear()}> Clear all × </button>
 					{/if}
 				</p>
 				<div class="tag-list" role="group" aria-label="Tag filters">
