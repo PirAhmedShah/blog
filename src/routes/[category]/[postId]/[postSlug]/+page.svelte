@@ -3,58 +3,63 @@
 	import { page } from '$app/state';
 	import { fade } from 'svelte/transition';
 
-	let { data } = $props();
+	const { data } = $props();
 
-	const { meta, content: PostContent, category } = $derived(data);
+	const PostContent = $derived(data.content);
+	const category = $derived(data.category);
+	const post = $derived(data.post);
 	const thumbnailUrl = $derived(
-		`${base}/images/thumbnails/${page.params.category}/${page.params.posts}.webp`
+		`${base}/images/thumbnails/${page.params.category}/${page.params.postId}.webp`
 	);
 </script>
 
 <svelte:head>
-	<title>{meta.title} | {category.metadata.name} | Pir Ahmed Shah's Blog</title>
-	<meta name="title" content="{meta.title} | {category.metadata.name} | Pir Ahmed Shah's Blog" />
-	<meta name="description" content={meta.description} />
-	<meta name="author" content={meta.author} />
+	<title>{post.metadata.title} | {category.metadata.name} | Pir Ahmed Shah's Blog</title>
+	<meta
+		name="title"
+		content="{post.metadata.title} | {category.metadata.name} | Pir Ahmed Shah's Blog"
+	/>
+	<meta name="description" content={post.metadata.description} />
+	<meta name="author" content={post.metadata.author} />
 	<link
 		rel="canonical"
-		href="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.posts}/"
+		href="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/"
 	/>
 
 	<meta property="og:type" content="article" />
 	<meta property="og:site_name" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		property="og:url"
-		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.posts}/"
+		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/"
 	/>
-	<meta property="og:title" content="{meta.title} | {category.metadata.name}" />
-	<meta property="og:description" content={meta.description} />
+	<meta property="og:title" content="{post.metadata.title} | {category.metadata.name}" />
+	<meta property="og:description" content={post.metadata.description} />
 	<meta
 		property="og:image"
 		content="https://pirahmedshah.github.io/blog/images/thumbnails/{page.params.category}/{page
-			.params.posts}.webp"
+			.params.postId}.webp"
 	/>
-	<meta property="og:image:alt" content={meta.title} />
+	<meta property="og:image:alt" content={post.metadata.title} />
 	<meta property="og:locale" content="en_US" />
-	<meta property="article:published_time" content={meta.date} />
-	<meta property="article:author" content={meta.author} />
+	<meta property="article:published_time" content={post.metadata.date} />
+	<meta property="article:author" content={post.metadata.author} />
 	<meta property="article:section" content={category.metadata.name} />
 
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:site" content="@pirahmedshah" />
-	<meta name="twitter:creator" content="@pirahmedshah" />
+	<meta name="twitter:site" content="@AhmedX" />
+	<meta name="twitter:creator" content="@AhmedX" />
 	<meta
 		name="twitter:url"
-		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.posts}/"
+		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/"
 	/>
-	<meta name="twitter:title" content="{meta.title} | {category.metadata.name}" />
-	<meta name="twitter:description" content={meta.description} />
+	<meta name="twitter:title" content="{post.metadata.title} | {category.metadata.name}" />
+	<meta name="twitter:description" content={post.metadata.description} />
 	<meta
 		name="twitter:image"
 		content="https://pirahmedshah.github.io/blog/images/thumbnails/{page.params.category}/{page
-			.params.posts}.webp"
+			.params.postId}.webp"
 	/>
-	<meta name="twitter:image:alt" content={meta.title} />
+	<meta name="twitter:image:alt" content={post.metadata.title} />
 </svelte:head>
 
 {#key page.url.pathname}
@@ -67,10 +72,10 @@
 				<span class="meta-tag">
 					{category.metadata.name}
 				</span>
-				<h1>{meta.title}</h1>
-				<p class="subtitle">{meta.description}</p>
-				<time datetime={meta.date}>
-					{new Date(meta.date).toLocaleDateString('en-US', {
+				<h1>{post.metadata.title}</h1>
+				<p class="subtitle">{post.metadata.description}</p>
+				<time datetime={post.metadata.date}>
+					{new Date(post.metadata.date).toLocaleDateString('en-US', {
 						year: 'numeric',
 						month: 'long',
 						day: 'numeric'

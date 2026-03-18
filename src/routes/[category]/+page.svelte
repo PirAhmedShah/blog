@@ -5,9 +5,9 @@
 
 	let { data } = $props();
 
-	const posts = $derived(data.posts ?? []);
 	const category = $derived(data.category);
-	const CategoryComponent = $derived(category.content);
+	const posts = $derived(data.postsByCategory[category.slug]);
+	const CategoryContent = $derived(data.content);
 </script>
 
 <svelte:head>
@@ -30,8 +30,8 @@
 	<meta property="og:locale" content="en_US" />
 
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:site" content="@pirahmedshah" />
-	<meta name="twitter:creator" content="@pirahmedshah" />
+	<meta name="twitter:site" content="@AhmedX" />
+	<meta name="twitter:creator" content="@AhmedX" />
 	<meta name="twitter:url" content="https://pirahmedshah.github.io/blog/{page.params.category}/" />
 	<meta name="twitter:title" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
 	<meta name="twitter:description" content={category.metadata.description} />
@@ -45,14 +45,14 @@
 			<h1>{category.metadata.name}</h1>
 			<p class="description">{category.metadata.description}</p>
 
-			<CategoryComponent />
+			<CategoryContent />
 			<div class="meta-divider"></div>
 		</article>
 
-		{#if posts.length > 0}
+		{#if posts && posts.length > 0}
 			<div class="grid-container">
-				{#each posts as post (post.slug)}
-					<a href={resolve(`/${category.slug}/${post.slug}/`)} class="card">
+				{#each posts as post (post.id)}
+					<a href={resolve(`/${category.slug}/${post.id}/${post.slug}/`)} class="card">
 						<div class="card-content">
 							<h3>{post.metadata.title}</h3>
 							<p>{post.metadata.description}</p>

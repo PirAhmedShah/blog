@@ -5,6 +5,7 @@
 
 	let { data } = $props();
 	const categories = $derived(data.categories);
+	const postsByCategory = $derived(data.postsByCategory);
 </script>
 
 <svelte:head>
@@ -12,18 +13,17 @@
 	<meta name="title" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		name="description"
-		content="Engineering logs, Svelte 5 deep dives, and CS fundamentals from a 1st-year student at FAST-NUCES."
+		content="Technical writing on systems programming, web engineering, and computer science fundamentals by a 2nd-year CS student at FAST-NUCES."
 	/>
 	<meta name="author" content="Pir Ahmed Shah" />
 	<link rel="canonical" href="https://pirahmedshah.github.io/blog/" />
-
 	<meta property="og:type" content="website" />
 	<meta property="og:site_name" content="Pir Ahmed Shah | Dev Blog" />
 	<meta property="og:url" content="https://pirahmedshah.github.io/blog/" />
 	<meta property="og:title" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		property="og:description"
-		content="Engineering logs, Svelte 5 deep dives, and CS fundamentals from a 1st-year student at FAST-NUCES."
+		content="Technical writing on systems programming, web engineering, and computer science fundamentals by a 2nd-year CS student at FAST-NUCES."
 	/>
 	<meta property="og:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
 	<meta property="og:image:type" content="image/png" />
@@ -31,15 +31,14 @@
 	<meta property="og:image:height" content="630" />
 	<meta property="og:image:alt" content="Pir Ahmed Shah Dev Blog" />
 	<meta property="og:locale" content="en_US" />
-
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:site" content="@pirahmedshah" />
-	<meta name="twitter:creator" content="@pirahmedshah" />
+	<meta name="twitter:site" content="@AhmedX" />
+	<meta name="twitter:creator" content="@AhmedX" />
 	<meta name="twitter:url" content="https://pirahmedshah.github.io/blog/" />
 	<meta name="twitter:title" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		name="twitter:description"
-		content="Engineering logs, Svelte 5 deep dives, and CS fundamentals from a 1st-year student at FAST-NUCES."
+		content="Technical writing on systems programming, web engineering, and computer science fundamentals by a 2nd-year CS student at FAST-NUCES."
 	/>
 	<meta name="twitter:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
 	<meta name="twitter:image:alt" content="Pir Ahmed Shah Dev Blog" />
@@ -47,27 +46,35 @@
 
 <main>
 	<section class="hero" in:fade={{ duration: 600 }}>
-		<h1>Welcome to my digital garden.</h1>
-		<p>Exploring systems, theory, and the craft of software development.</p>
+		<p class="eyebrow">Pir Ahmed Shah</p>
+		<h1>Welcome to my<br />digital garden.</h1>
+		<p class="subtitle">
+			Engineering logs, Svelte 5 deep dives, and CS fundamentals from a 1st-year student at
+			FAST-NUCES.
+		</p>
 	</section>
 
-	<section class="categories-grid" in:fade={{ duration: 600, delay: 200 }}>
-		<h2>Explore Categories</h2>
+	<div class="divider"></div>
+
+	<section class="categories" in:fade={{ duration: 600, delay: 200 }}>
+		<p class="section-label">Explore categories</p>
 		<div class="grid">
 			{#each categories as category (category.slug)}
 				{@const Icon = Icons[category.metadata.icon as keyof typeof Icons.icons]}
+				{@const count = postsByCategory[category.slug]?.length ?? 0}
 
 				<a
 					href={resolve(`/${category.slug}/`)}
-					class="category-card"
-					style="--card-primary: {category.metadata.color}"
+					class="card"
+					style="--card-accent: {category.metadata.color}"
 				>
-					<div class="icon-wrapper">
-						{#if Icon}
-							<Icon size={64} />
-						{/if}
+					<div class="accent-bar"></div>
+					<div class="card-header">
+						<div class="icon-wrapper">
+							{#if Icon}<Icon size={20} />{/if}
+						</div>
+						<span class="post-badge">{count} {count === 1 ? 'post' : 'posts'}</span>
 					</div>
-
 					<h3>{category.metadata.name}</h3>
 					<p>{category.metadata.description}</p>
 					<span class="explore-link">Explore →</span>
@@ -79,67 +86,144 @@
 
 <style>
 	main {
+		max-width: 1000px;
 		margin: 0 auto;
-		padding: 4rem 5%;
+		padding: 0 5%;
 	}
 
 	.hero {
 		text-align: center;
-		padding: 4rem 0;
-		margin-bottom: 2rem;
+		padding: 5rem 0 3rem;
 	}
-	h1 {
-		font-size: 3.5rem;
-		margin-bottom: 1rem;
-		color: var(--foreground);
-	}
-	.hero p {
-		font-size: 1.25rem;
+
+	.eyebrow {
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
 		color: var(--muted-foreground);
+		margin-bottom: 1rem;
+	}
+
+	h1 {
+		font-size: 3rem;
+		font-weight: 500;
+		line-height: 1.2;
+		color: var(--foreground);
+		margin-bottom: 1rem;
+	}
+
+	.subtitle {
+		font-size: 1.1rem;
+		color: var(--muted-foreground);
+		max-width: 480px;
+		margin: 0 auto;
+		line-height: 1.7;
+	}
+
+	.divider {
+		width: 40px;
+		height: 2px;
+		background: var(--border);
+		margin: 0 auto 3rem;
+		border-radius: 2px;
+	}
+
+	.section-label {
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--muted-foreground);
+		margin-bottom: 1.25rem;
 	}
 
 	.grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-		gap: 2rem;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 1rem;
+		padding-bottom: 4rem;
 	}
 
-	.category-card {
-		padding: 2rem;
+	.card {
+		position: relative;
+		overflow: hidden;
+		padding: 1.5rem;
 		background: var(--card);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 		text-decoration: none;
 		color: var(--foreground);
-		transition:
-			transform 0.3s ease,
-			border-color 0.3s ease;
 		display: flex;
 		flex-direction: column;
-		border-top: 4px solid transparent;
+		gap: 0.75rem;
+		transition:
+			border-color 0.2s ease,
+			transform 0.2s ease;
 	}
 
-	.category-card:hover {
-		transform: translateY(-8px);
-		border-top-color: var(--card-primary);
+	.card:hover {
+		border-color: var(--card-accent);
+		transform: translateY(-3px);
+	}
+
+	.accent-bar {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 3px;
+		background: var(--card-accent);
+		opacity: 0;
+		transition: opacity 0.2s ease;
+	}
+
+	.card:hover .accent-bar {
+		opacity: 1;
+	}
+
+	.card-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 	}
 
 	.icon-wrapper {
-		margin-bottom: 1.5rem;
-		color: var(--card-primary);
+		width: 36px;
+		height: 36px;
+		border-radius: var(--radius);
+		background: var(--muted);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--card-accent);
 	}
 
-	.category-card h3 {
-		margin: 0 0 1rem 0;
-		font-size: 1.5rem;
-	}
-	.category-card p {
+	.post-badge {
+		font-size: 0.7rem;
+		font-weight: 500;
+		padding: 3px 8px;
+		border-radius: 99px;
+		background: var(--muted);
 		color: var(--muted-foreground);
-		margin-bottom: 2rem;
+		border: 1px solid var(--border);
+	}
+
+	.card h3 {
+		font-size: 1.1rem;
+		font-weight: 500;
+	}
+
+	.card p {
+		font-size: 0.9rem;
+		color: var(--muted-foreground);
+		line-height: 1.6;
 		flex-grow: 1;
 	}
+
 	.explore-link {
-		font-weight: 600;
-		color: var(--card-primary);
+		font-size: 0.85rem;
+		font-weight: 500;
+		color: var(--card-accent);
 	}
 </style>
