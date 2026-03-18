@@ -71,6 +71,11 @@
 					day: 'numeric'
 				})}
 			</time>
+			<ul class="tag-list">
+				{#each post.metadata.tags as tag, i (i)}
+					<li class="tag">{tag}</li>
+				{/each}
+			</ul>
 		</div>
 	</header>
 
@@ -156,6 +161,25 @@
 
 	.post-content {
 		width: 100%;
+	}
+	.tag-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		list-style: none;
+		padding: 0;
+		margin-top: 1rem;
+	}
+
+	.tag {
+		font-size: 0.8rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05rem;
+		padding: 0.25rem 0.6rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		opacity: 0.85;
 	}
 
 	.post-content :global(h2) {

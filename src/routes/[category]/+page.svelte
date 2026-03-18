@@ -56,6 +56,11 @@
 						<div class="card-content">
 							<h3>{post.metadata.title}</h3>
 							<p>{post.metadata.description}</p>
+							<ul class="tag-list">
+								{#each post.metadata.tags as tag, i (i)}
+									<li class="tag">{tag}</li>
+								{/each}
+							</ul>
 						</div>
 						<span class="read-more">Read article →</span>
 					</a>
@@ -124,6 +129,25 @@
 		color: var(--muted-foreground);
 		line-height: 1.6;
 		margin-bottom: 2rem;
+	}
+	.tag-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		list-style: none;
+		padding: 0;
+		margin-bottom: 2rem;
+	}
+
+	.tag {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05rem;
+		padding: 0.2rem 0.5rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		color: var(--muted-foreground);
 	}
 
 	.read-more {
