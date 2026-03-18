@@ -1,0 +1,83 @@
+---
+title: "Resource: Tag Reference"
+description: "A reference guide for all blog tags, their categories, and when to use them."
+date: "2026-03-19"
+author: "Pir Ahmed Shah"
+tags:
+     - resource
+---
+
+# Tag Reference
+
+Tags are split into three groups: 
+- **Topic** tags describe what a post is about.
+- **Format** tags describe how it is written.
+- **Scope** tags describe the time period it covers.
+
+Most posts should have 1-2 topic tags, one format tag, and
+optionally one scope tag.
+
+---
+
+## Topic Tags
+
+Technical and subject-matter tags. Pick only what the post is genuinely about.
+
+| Tag            | When to use                                           |
+| -------------- | ----------------------------------------------------- |
+| `typescript`   | TS-specific features, type patterns, or gotchas       |
+| `svelte`       | Svelte / SvelteKit specific posts                     |
+| `css`          | Styling, layout, animations, design tokens            |
+| `performance`  | Load times, bundle size, rendering, optimization      |
+| `architecture` | Project structure, design patterns, system design     |
+| `testing`      | Unit, integration, e2e, testing strategies            |
+| `api`          | REST, GraphQL, fetch patterns, backend communication  |
+| `tooling`      | Vite, ESLint, build tools, dev environment setup      |
+| `workflow`     | Day-to-day process, habits, how work gets done        |
+| `dx`           | Developer experience, ergonomics, quality of life     |
+| `career`       | Job hunting, growth, decisions, industry observations |
+| `writing`      | Blogging, communication, documentation                |
+| `learning`     | Study approaches, resources, skill building           |
+| `productivity` | Time management, focus, systems                       |
+| `project`      | Posts tied to something you built or shipped          |
+
+---
+
+## Format Tags
+
+Describe the structure or intent of the post. Every post should have exactly one.
+
+| Tag             | When to use                                             |
+| --------------- | ------------------------------------------------------- |
+| `til`           | Short discovery, something learned unexpectedly         |
+| `retrospective` | Looking back — what happened, what worked, what did not |
+| `prospective`   | Looking forward — plans, goals, intentions              |
+| `opinion`       | A take, a stance, something you disagree with           |
+| `resource`      | Curated reference, links, or tools worth bookmarking    |
+| `learning`      | Deep dive into something you studied intentionally      |
+
+---
+
+## Scope Tags
+
+Optional. Narrow the time window of the post. Always paired with a format tag.
+
+| Tag       | When to use               |
+| --------- | ------------------------- |
+| `weekly`  | Post covers a single week |
+| `monthly` | Post covers a full month  |
+
+---
+
+## Combinations
+
+Common pairings for reference:
+
+| Post type        | Tags                                       |
+| ---------------- | ------------------------------------------ |
+| Monthly lookback | `retrospective` + `monthly`                |
+| Weekly plan      | `prospective` + `weekly`                   |
+| Weekly log       | `retrospective` + `prospective` + `weekly` |
+| Quick discovery  | `til` + relevant topic tag                 |
+| Project writeup  | `project` + relevant topic tags            |
+| Opinion piece    | `opinion` + relevant topic tag             |
