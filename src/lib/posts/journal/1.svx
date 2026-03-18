@@ -3,9 +3,11 @@ title: "Weekly Log: 11 - February 2026"
 description: "Weekly retrospective and prospective."
 date: "2026-03-16"
 author: "Pir Ahmed Shah"
-tags: 
+tags:
+     - retrospective
+     - prospective
      - weekly
-     - log
+     - project
 ---
 
 ## Weekly Retrospective

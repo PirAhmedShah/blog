@@ -3,9 +3,11 @@ title: "Retrospective: February 2026"
 description: "A look back at life, progress, and technical wins."
 date: "2026-03-01"
 author: "Pir Ahmed Shah"
-tags: 
+tags:
      - retrospective
      - monthly
+     - project
+     - career
 ---
 
 # February Overview
