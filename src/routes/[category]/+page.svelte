@@ -41,12 +41,12 @@
 
 {#key page.url.pathname}
 	<main class="container" in:fade={{ duration: 300 }}>
-		<article class="category-header prose">
+		<article class="prose">
 			<h1>{category.metadata.name}</h1>
 			<p class="description">{category.metadata.description}</p>
 
 			<CategoryContent />
-			<div class="meta-divider"></div>
+			<div class="divider"></div>
 		</article>
 
 		{#if posts && posts.length > 0}
@@ -77,11 +77,7 @@
 <style>
 	.container {
 		margin: 0 auto;
-		padding: 4rem 1.5rem;
-	}
-
-	.category-header {
-		margin-bottom: 3rem;
+		padding: 4vh 2vw;
 	}
 
 	.description {
@@ -90,15 +86,16 @@
 		max-width: 600px;
 	}
 
-	.meta-divider {
-		width: 60px;
-		height: 4px;
-		margin-top: 2rem;
+	.divider {
+		width: 40px;
+		height: 2px;
+		background: var(--border);
+		margin: 0 auto 3rem;
 		border-radius: 2px;
 	}
 	.grid-container {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
 		gap: 2rem;
 	}
 

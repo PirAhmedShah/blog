@@ -9,9 +9,7 @@
 <Header categories={data.categories} />
 
 <div class="page-wrapper">
-	<main class="content">
-		{@render children?.()}
-	</main>
+	{@render children?.()}
 	<Sidebar />
 </div>
 
