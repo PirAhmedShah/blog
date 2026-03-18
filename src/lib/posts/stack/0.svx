@@ -1,0 +1,78 @@
+---
+title: "Build Log: This Blog"
+description: "How I built and shipped this blog in under 3 days using SvelteKit, GitHub Pages, SEO, performance tuning, and a few late nights."
+date: "2026-03-18"
+author: "Pir Ahmed Shah"
+tags:
+     - build
+     - log
+---
+
+I launched this blog on March 16, 2026. From the first commit to a live, SEO-ready site took about 3 days. This is a breakdown of what I built, what broke, and what I would do differently.
+
+## The Stack
+
+- **Framework:** SvelteKit 5 (static adapter for GitHub Pages)
+- **Hosting:** GitHub Pages on a subpath (`/blog`)
+- **Content:** `.svx` (MDsvex) markdown files
+- **Styling:** Plain CSS with CSS variables
+- **Code Syntax Highlighter:** Shiki
+
+## Day 1: Bootstrapping
+
+Scaffolded the app, set up the category and post routing system, added the logo, favicon, and wrote the first two posts. Also wired up the GitHub Pages deploy command early so I wasn't scrambling at the end.
+
+Routing was simple at first just file-based slugs derived from the markdown filename. It worked, but it meant a filename change would silently break any existing link. A problem I chose to ignore for day one.
+
+## Day 2: Getting it Live
+
+Deployment to GitHub Pages on a subpath was messier than expected.
+
+- Absolute asset paths broke because the site lives at `/blog/`, not `/`. Fixed by setting `kit.paths.base` in the config.
+- GitHub Pages tries to process everything through Jekyll by default, which mangles SvelteKit's output. Added `.nojekyll` to the build.
+- Trailing slashes were inconsistent across internal links, causing routing mismatches. Set `trailingSlash: 'always'` and audited every `href`.
+
+The `404.html` fallback deserves its own mention. I added it expecting it to handle direct URL access which is a standard practice for SPAs on GitHub Pages. Except this isn't an SPA. I had my prerender and SSR config sitting in `+page.ts`:
+```typescript
+export const prerender = true;
+export const ssr = true;
+```
+
+The problem is that config in `+page.ts` doesn't cascade down to child routes. It needed to be in `+layout.ts` to apply globally. A small and easy-to-miss mistake with a devastating effect. Pages weren't being prerendered at build time, so there was nothing for GitHub Pages to serve.
+
+## Day 3: Polish & Rethinking Routing
+
+Once it was live I shifted to quality and finally dealt with the routing problem.
+
+**Routing overhaul:** Moved from naive filename-based slugs to a StackOverflow-style system. Posts now have a numeric ID as the stable identifier, with the slugified title appended as a decorative SEO segment like `/stack/0/build-log-this-blog/`. As long as the ID `/0/`, the user will always be redirected to correct post. The ID is what actually resolves the post; the title slug can change freely without breaking any links. Much cleaner.
+
+**SEO:** Stripped `app.html` down to a minimal shell and moved all meta tags into per-page `<svelte:head>` blocks. Added full Open Graph and Twitter Card tags on every route (title, description, image, canonical URL, locale). Each post gets its own head with post-specific metadata.
+
+**Performance:** I ran Lighthouse after the initial deploy and the scores weren't great. Three things stood out in the report.
+
+The logo image had no explicit dimensions set, which caused a layout shift. The browser had no idea how much space to reserve, so it painted the page and then jumped when the image loaded. Lighthouse flagged this as a CLS (Cumulative Layout Shift) issue. One `width` and `height` attribute fixed it.
+
+The avatar was being served at full resolution 4096×4096 for a 48×48 display slot. Extra bytes on every page load for zero visual difference. Resized it to twice the actual render size (96×96) to account for high-density displays.
+
+Small CSS files loaded as separate requests were blocking the first paint. Lighthouse flagged them under render-blocking resources. Inlining them directly into the HTML removes the round trip and gets content on screen faster, which improved the First Contentful Paint score noticeably.
+
+After those three fixes the Lighthouse performance score went from 85 to 97. Beyond that, there's not much left to squeeze, the server is out of my hands on GitHub Pages.
+
+**Accessibility:** Audited heading order across all post and category svx markdown files. No skipped levels, since screen readers use heading structure to build a document outline and skipping levels breaks it in ways that aren't visible to sighted users. Also bumped the primary color contrast. Both of these showed up in the Lighthouse accessibility audit.
+
+## What I'd Do Differently
+
+If I were starting over, [Astro](https://docs.astro.build/en/concepts/why-astro/) would be the honest first pick. It's built for exactly this. It is a fast static blog that still supports interactive components. I chose SvelteKit because I'm already deep in that ecosystem with [Rodevsy](https://rodevsy.app) and the knowledge transfers. But Astro would've handled the GitHub Pages deployment, trailing slashes, and prerender config out of the box without me having to figure it all out manually. I'd pick SvelteKit again for the same reason, but I'd at least go in knowing what I was signing up for.
+
+## What's Next
+
+The blog is live but most categories are empty. That's the real work now, writing consistently and actually filling them up.
+
+### The Plan
+- Ship updates on Rodevsy in **Ship** as I build it. 
+- Document coursework and OS internals in **Lab**.
+- Go deep on SvelteKit in **Stack**.
+- **Scripts** will cover Luau and the Roblox ecosystem as I get back to that.
+- **Journal** keeps running as the low-filter log it already is.
+
+The hard part isn't the writing, it's the habit. We'll see.
