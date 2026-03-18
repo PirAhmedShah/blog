@@ -127,9 +127,11 @@
 
 <style>
 	.container {
-		width: 800px;
+		max-width: 800px;
+		width: 100%;
 		margin: 0 auto;
 		padding: 4rem 1.5rem 6rem;
+		box-sizing: border-box;
 	}
 
 	/* ── Hero ─────────────────────────────────────────────── */
