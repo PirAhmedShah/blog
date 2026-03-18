@@ -99,15 +99,16 @@ export const load = async () => {
 	for (const group of Object.values(postsByCategory)) {
 		if (!group) continue;
 
-		group.sort((a, b) => a.id - b.id);
-
-		group.forEach((post, i) => {
-			if (i !== post.id)
-				throw new Error(
-					`Post IDs must be sequential. Expected ${i} but got ${post.id} for "${post.slug}" in "${post.category}".`
-				);
-			validatePost(post);
-		});
+		group
+			.sort((a, b) => a.id - b.id)
+			.forEach((post, i) => {
+				if (i !== post.id)
+					throw new Error(
+						`Post IDs must be sequential. Expected ${i} but got ${post.id} for "${post.slug}" in "${post.category}".`
+					);
+				validatePost(post);
+			});
+		group.sort((a, b) => b.metadata.date.localeCompare(a.metadata.date));
 	}
 
 	return { categories, postsByCategory };
