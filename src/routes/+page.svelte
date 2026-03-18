@@ -13,7 +13,7 @@
 	<meta name="title" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		name="description"
-		content="A dev blog by Pir Ahmed Shah — CS student at FAST-NUCES. Writing about systems, web engineering, game scripting, and the journey of learning in public."
+		content="A dev blog by Pir Ahmed Shah. A SE student at FAST-NUCES. Writing about systems, web engineering, game scripting, and the journey of learning in public."
 	/>
 	<meta name="author" content="Pir Ahmed Shah" />
 	<link rel="canonical" href="https://pirahmedshah.github.io/blog/" />
@@ -23,7 +23,7 @@
 	<meta property="og:title" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		property="og:description"
-		content="A dev blog by Pir Ahmed Shah — CS student at FAST-NUCES. Writing about systems, web engineering, game scripting, and the journey of learning in public."
+		content="A dev blog by Pir Ahmed Shah. A SE student at FAST-NUCES. Writing about systems, web engineering, game scripting, and the journey of learning in public."
 	/>
 	<meta property="og:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
 	<meta property="og:image:type" content="image/png" />
@@ -38,7 +38,7 @@
 	<meta name="twitter:title" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		name="twitter:description"
-		content="A dev blog by Pir Ahmed Shah — CS student at FAST-NUCES. Writing about systems, web engineering, game scripting, and the journey of learning in public."
+		content="A dev blog by Pir Ahmed Shah. A SE student at FAST-NUCES. Writing about systems, web engineering, game scripting, and the journey of learning in public."
 	/>
 	<meta name="twitter:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
 	<meta name="twitter:image:alt" content="Pir Ahmed Shah Dev Blog" />
@@ -46,7 +46,7 @@
 
 <main>
 	<section class="hero" in:fade={{ duration: 600 }}>
-		<p class="eyebrow">Pir Ahmed Shah — CS Student at FAST-NUCES</p>
+		<p class="eyebrow">Pir Ahmed Shah</p>
 		<h1>Writing about what<br />I'm learning to build.</h1>
 		<p class="subtitle">
 			A technical blog covering systems programming, web engineering, game scripting, and university

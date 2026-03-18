@@ -26,7 +26,7 @@
 	<meta property="og:image:type" content="image/png" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
-	<meta property="og:image:alt" content="{category.metadata.name} — Pir Ahmed Shah's Blog" />
+	<meta property="og:image:alt" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
 	<meta property="og:locale" content="en_US" />
 
 	<meta name="twitter:card" content="summary_large_image" />
@@ -36,7 +36,7 @@
 	<meta name="twitter:title" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
 	<meta name="twitter:description" content={category.metadata.description} />
 	<meta name="twitter:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
-	<meta name="twitter:image:alt" content="{category.metadata.name} — Pir Ahmed Shah's Blog" />
+	<meta name="twitter:image:alt" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
 </svelte:head>
 
 {#key page.url.pathname}

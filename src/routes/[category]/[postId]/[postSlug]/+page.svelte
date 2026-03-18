@@ -1,99 +1,85 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { page } from '$app/state';
 	import { fade } from 'svelte/transition';
 
 	const { data } = $props();
 
 	const PostContent = $derived(data.content);
-	const category = $derived(data.category);
 	const post = $derived(data.post);
-	const thumbnailUrl = $derived(
-		`${base}/images/thumbnails/${page.params.category}/${page.params.postId}.webp`
-	);
+	const thumbnailUrl = $derived(`${base}/images/thumbnails/${post.category}/${post.id}.webp`);
 </script>
 
 <svelte:head>
-	<title>{post.metadata.title} | {category.metadata.name} | Pir Ahmed Shah's Blog</title>
-	<meta
-		name="title"
-		content="{post.metadata.title} | {category.metadata.name} | Pir Ahmed Shah's Blog"
-	/>
+	<title>{post.metadata.title} | {post.category} | Pir Ahmed Shah's Blog</title>
+	<meta name="title" content="{post.metadata.title} | {post.category} | Pir Ahmed Shah's Blog" />
 	<meta name="description" content={post.metadata.description} />
 	<meta name="author" content={post.metadata.author} />
 	<link
 		rel="canonical"
-		href="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/{page
-			.params.postSlug}/"
+		href="https://pirahmedshah.github.io/blog/{post.category}/{post.id}/{post.slug}/"
 	/>
 
 	<meta property="og:type" content="article" />
 	<meta property="og:site_name" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		property="og:url"
-		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/{page
-			.params.postSlug}/"
+		content="https://pirahmedshah.github.io/blog/{post.category}/{post.id}/{post.slug}/"
 	/>
-	<meta property="og:title" content="{post.metadata.title} | {category.metadata.name}" />
+	<meta property="og:title" content="{post.metadata.title} | {post.category}" />
 	<meta property="og:description" content={post.metadata.description} />
 	<meta
 		property="og:image"
-		content="https://pirahmedshah.github.io/blog/images/thumbnails/{page.params.category}/{page
-			.params.postId}.webp"
+		content="https://pirahmedshah.github.io/blog/images/thumbnails/{post.category}/{post.id}.webp"
 	/>
 	<meta property="og:image:alt" content={post.metadata.title} />
 	<meta property="og:locale" content="en_US" />
 	<meta property="article:published_time" content={post.metadata.date} />
 	<meta property="article:author" content={post.metadata.author} />
-	<meta property="article:section" content={category.metadata.name} />
+	<meta property="article:section" content={post.category} />
 
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:site" content="@AhmedX" />
 	<meta name="twitter:creator" content="@AhmedX" />
 	<meta
 		name="twitter:url"
-		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/{page
-			.params.postSlug}/"
+		content="https://pirahmedshah.github.io/blog/{post.category}/{post.id}/{post.slug}/"
 	/>
-	<meta name="twitter:title" content="{post.metadata.title} | {category.metadata.name}" />
+	<meta name="twitter:title" content="{post.metadata.title} | {post.category}" />
 	<meta name="twitter:description" content={post.metadata.description} />
 	<meta
 		name="twitter:image"
-		content="https://pirahmedshah.github.io/blog/images/thumbnails/{page.params.category}/{page
-			.params.postId}.webp"
+		content="https://pirahmedshah.github.io/blog/images/thumbnails/{post.category}/{post.id}.webp"
 	/>
 	<meta name="twitter:image:alt" content={post.metadata.title} />
 </svelte:head>
 
-{#key page.url.pathname}
-	<div class="post-wrapper" in:fade={{ duration: 300 }}>
-		<header
-			class="hero-header"
-			style="background-image: linear-gradient(to bottom, transparent, var(--background)), url('{thumbnailUrl}');"
-		>
-			<div class="hero-content">
-				<span class="meta-tag">
-					{category.metadata.name}
-				</span>
-				<h1>{post.metadata.title}</h1>
-				<p class="subtitle">{post.metadata.description}</p>
-				<time datetime={post.metadata.date}>
-					{new Date(post.metadata.date).toLocaleDateString('en-US', {
-						year: 'numeric',
-						month: 'long',
-						day: 'numeric'
-					})}
-				</time>
-			</div>
-		</header>
-
-		<div class="post-container">
-			<article class="post-content prose">
-				<PostContent />
-			</article>
+<div class="post-wrapper" in:fade={{ duration: 300 }}>
+	<header
+		class="hero-header"
+		style="background-image: linear-gradient(to bottom, transparent, var(--background)), url('{thumbnailUrl}');"
+	>
+		<div class="hero-content">
+			<span class="meta-tag">
+				{post.category}
+			</span>
+			<h1>{post.metadata.title}</h1>
+			<p class="subtitle">{post.metadata.description}</p>
+			<time datetime={post.metadata.date}>
+				{new Date(post.metadata.date).toLocaleDateString('en-US', {
+					year: 'numeric',
+					month: 'long',
+					day: 'numeric'
+				})}
+			</time>
 		</div>
+	</header>
+
+	<div class="post-container">
+		<article class="post-content prose">
+			<PostContent />
+		</article>
 	</div>
-{/key}
+</div>
 
 <style>
 	:global(*) {

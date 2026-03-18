@@ -5,6 +5,7 @@ export interface PostMetadata {
 	description: string;
 	date: string;
 	author: string;
+	tags: string[];
 }
 
 export interface Post {
