@@ -1,0 +1,57 @@
+---
+title: "Learning: What Building This Blog Taught Me"
+description: "Lessons from shipping a SvelteKit blog to GitHub Pages. The SEO, performance, accessibility and a few things I didn't expect to learn."
+date: "2026-03-19"
+author: "Pir Ahmed Shah"
+tags:
+     - learning
+     - svelte
+     - performance
+     - project
+---
+
+I did not expect to learn much from building a blog. It is a blog, how hard could it be. Turns out shipping something real, even something small, always teaches you things a tutorial will not.
+
+## SvelteKit is Genuinely Different
+
+I came in fresh off migrating Rodevsy from Next.js to SvelteKit 5, so I was not starting from zero. But building the blog made a few things click.
+
+**`<svelte:head>` seems minor until you actually use it.** Per-page metadata, Open Graph tags, canonical URLs, all sitting right next to the component they belong to. No `_document.js`, no head management library. It feels like it was designed by someone who had genuinely done SEO before.
+
+The static adapter for GitHub Pages was smoother than I expected too. Swapping deployment targets is a config change, not a rewrite. You really appreciate that after rearchitecting a Next.js app for a different host.
+
+The bigger shift is how Svelte thinks about reactivity. React describes what the UI should look like and a diffing algorithm figures out what to change at runtime. Svelte's compiler does that work at build time and emits direct DOM updates. No virtual DOM, no stale closures.
+
+`useEffect`, `useMemo`, `useState`, each with its own rules and edge cases, collapse into `$state`, `$derived`, and `$effect`. Same concepts, much less noise.
+
+## SEO is Just a Checklist
+
+I used to treat SEO as something vague and mysterious. It is not. At the page level it is just:
+
+- Unique `<title>` and `meta name="description"` per page
+- Open Graph tags for social previews
+- Twitter Card tags mirroring OG
+- A canonical URL
+- Correct locale
+
+If you want to dive deep into SEO check out [SEO Starter Guide](https://developers.google.com/search/docs/fundamentals/seo-starter-guide).
+
+## Performance is Just Fewer Decisions for the Browser
+
+Every fix I made came down to the same thing: give the browser less to figure out.
+
+Inlining small CSS files removes a network round trip before first paint. Adding explicit dimensions to the logo killed a layout shift I did not even notice until I ran Lighthouse. Resizing the avatar from 400px down to the 96px it actually renders at was obvious in hindsight.
+
+None of these need a profiler. They are just defaults you have to consciously set.
+
+## Accessibility Has a Spec, So Use It
+
+I had never checked heading structure before. The rule is simple: do not skip levels. No jumping from `h1` to `h3`. Screen readers build a document outline from heading order and skipping levels breaks it in ways sighted users never notice.
+
+Most accessibility mistakes come from not knowing the rules, not from being unable to follow them.
+
+## Ship First, Fix When It Hurts
+
+My initial routing used filenames as slugs. Fragile by design: rename a file, break a link. I knew that and shipped it anyway because it unblocked everything else.
+
+When it hurt the next day I fixed it properly by using StackOverflow-style post hierarchy. That sequence felt more productive than trying to design the right thing upfront for a blog that did not exist yet. It probably always will.
