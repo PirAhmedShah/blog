@@ -1,0 +1,85 @@
+---
+title: "Project: Contributing to a Roblox Player Finder"
+description: "How I refactored a slow sequential token fetcher into a parallel batch processor with retry logic."
+date: "2026-03-18"
+author: "Pir Ahmed Shah"
+tags:
+     - project
+     - performance
+---
+
+# Contributing to a Roblox Player Finder
+
+Back in June 2024 I made two contributions to an open source Roblox tool called
+[Roblox-Player-Server-Searcher](https://github.com/Raihann22/Roblox-Player-Server-Searcher).
+It is a browser-side tool that lets you find which server a Roblox player is in
+by scanning game servers and matching avatar thumbnails.
+
+The core mechanism hits the Roblox thumbnails batch API with chunks of server
+tokens and checks if the target player's avatar image appears in the response.
+Simple idea, but the original implementation had a performance problem.
+
+## The Problem
+
+The original `fetchTokens()` processed tokens in a single loop, waiting for
+each batch of 100 to complete before starting the next one. Sequential. One
+request at a time. For games with thousands of servers this was slow, and
+there was no retry logic, so a single failed request could silently break
+the search.
+
+## What I Changed (PR [#3](https://github.com/Raihann22/Roblox-Player-Server-Searcher/pull/3))
+
+The fix was straightforward: batch the batches.
+
+Instead of processing one slice of 100 tokens at a time, I introduced
+`maxParallelRequests = 20` and used `Promise.all()` to fire up to 20 slices
+simultaneously. Each outer loop iteration now covers `20 * 100 = 2000` tokens
+at once instead of 100.
+
+I also wrapped each request in a `checkUserBatch()` function with retry logic.
+If a request fails it sleeps 50ms and tries again, up to 3 attempts, before
+giving up on that slice. The old code had no handling for this at all.
+```js
+async function checkUserBatch(slice, attempts = 1) {
+    if (attempts > 3) return false;
+    try {
+        const response = await fetch("https://thumbnails.roblox.com/v1/batch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(slice)
+        });
+        const res = await response.json();
+        if (!res.data) throw new Error("No response data");
+        const targetUserData = res.data.find(data => data.imageUrl === avatarImageUrl);
+        if (targetUserData) {
+            foundUser.unshift(targetUserData.requestId);
+            return true;
+        }
+        return false;
+    } catch (error) {
+        await sleep(50);
+        return await checkUserBatch(slice, attempts + 1);
+    }
+}
+```
+
+## The Follow-up (PR [#5](https://github.com/Raihann22/Roblox-Player-Server-Searcher/pull/5))
+
+The progress bar was updating based on the outer loop index, which meant it
+jumped in large uneven increments rather than reflecting actual work done.
+
+The fix was a `checkedTokens` counter incremented inside `checkUserBatch()`
+after each slice completes successfully. Progress now reflects tokens actually
+checked, not loop position. Small change, much smoother feedback.
+
+## What I Took Away
+
+The parallel processing pattern here is something I had read about but not
+applied to a real fetch-heavy problem before. `Promise.all()` is obvious in
+hindsight but there is a gap between knowing a thing and knowing when to reach
+for it. This was the first time it clicked as the right tool for a concrete
+problem rather than an abstract example.
+
+The progress bar fix also stuck with me. Tying UI state to loop position
+instead of actual work is an easy mistake to make and the result is always
+the same: a progress bar that lies.
