@@ -23,14 +23,16 @@
 	<meta name="author" content={post.metadata.author} />
 	<link
 		rel="canonical"
-		href="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/"
+		href="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/{page
+			.params.postSlug}/"
 	/>
 
 	<meta property="og:type" content="article" />
 	<meta property="og:site_name" content="Pir Ahmed Shah | Dev Blog" />
 	<meta
 		property="og:url"
-		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/"
+		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/{page
+			.params.postSlug}/"
 	/>
 	<meta property="og:title" content="{post.metadata.title} | {category.metadata.name}" />
 	<meta property="og:description" content={post.metadata.description} />
@@ -50,7 +52,8 @@
 	<meta name="twitter:creator" content="@AhmedX" />
 	<meta
 		name="twitter:url"
-		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/"
+		content="https://pirahmedshah.github.io/blog/{page.params.category}/{page.params.postId}/{page
+			.params.postSlug}/"
 	/>
 	<meta name="twitter:title" content="{post.metadata.title} | {category.metadata.name}" />
 	<meta name="twitter:description" content={post.metadata.description} />
