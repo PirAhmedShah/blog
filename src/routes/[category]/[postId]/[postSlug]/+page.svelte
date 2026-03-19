@@ -87,10 +87,6 @@
 </div>
 
 <style>
-	:global(*) {
-		box-sizing: border-box;
-	}
-
 	.post-wrapper {
 		width: 100%;
 		overflow-x: hidden;
@@ -180,60 +176,6 @@
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 		opacity: 0.85;
-	}
-
-	.post-content :global(h2) {
-		font-size: clamp(1.5rem, 5vw, 2rem);
-		margin-top: 2.5rem;
-		margin-bottom: 1rem;
-		color: var(--foreground);
-		overflow-wrap: break-word;
-	}
-
-	.post-content :global(h3) {
-		font-size: clamp(1.25rem, 4vw, 1.5rem);
-		margin-top: 2rem;
-		margin-bottom: 1rem;
-		color: var(--foreground);
-	}
-
-	.post-content :global(p) {
-		line-height: 1.8;
-		margin-bottom: 1.5rem;
-		font-size: clamp(1rem, 2.5vw, 1.1rem);
-		color: var(--foreground);
-		overflow-wrap: break-word;
-	}
-
-	.post-content :global(a) {
-		color: var(--primary);
-		text-decoration: underline;
-		text-underline-offset: 4px;
-	}
-
-	.post-content :global(ul),
-	.post-content :global(ol) {
-		margin-bottom: 1.5rem;
-		padding-left: 1.5rem;
-		font-size: 1.1rem;
-		color: var(--foreground);
-	}
-
-	.post-content :global(li) {
-		margin-bottom: 0.5rem;
-		line-height: 1.6;
-	}
-
-	.post-content :global(pre) {
-		background: var(--card);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		padding: 1.25rem;
-		margin-bottom: 1.5rem;
-
-		max-width: 100%;
-		overflow-x: auto;
-		-webkit-overflow-scrolling: touch;
 	}
 
 	@media (max-width: 480px) {
