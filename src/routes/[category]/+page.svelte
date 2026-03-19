@@ -1,87 +1,96 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { SvelteSet } from 'svelte/reactivity';
 	import { fade, fly } from 'svelte/transition';
 
 	let { data } = $props();
+	let selectedTags = $state<string[]>([]);
 
-	const category = $derived(data.category);
-	const tags = $derived(data.tags);
-	const CategoryContent = $derived(data.content);
+	function getFilteredSortedPosts(tags: string[]) {
+		if (tags.length === 0) return data.posts;
 
-	let selectedTags = new SvelteSet();
+		const result = [];
 
-	const posts = $derived(
-		selectedTags.size === 0
-			? data.posts
-			: data.posts.filter((post) => post.metadata.tags?.some((tag) => selectedTags.has(tag)))
-	);
+		for (const post of data.posts) {
+			let weight = 0;
+			for (const tag of post.metadata.tags) {
+				if (tags.includes(tag)) weight++;
+			}
+			if (weight > 0) result.push({ post, weight });
+		}
 
-	function toggleTag(tag: string) {
-		if (selectedTags.has(tag)) selectedTags.delete(tag);
-		else selectedTags.add(tag);
+		return result.sort((a, b) => b.weight - a.weight).map(({ post }) => post);
 	}
+
+	const posts = $derived(getFilteredSortedPosts(selectedTags));
+
+	const toggleTag = (tag: string) => {
+		const idx = selectedTags.indexOf(tag);
+		if (idx !== -1) selectedTags.splice(idx, 1);
+		else selectedTags.push(tag);
+	};
 </script>
 
 <svelte:head>
-	<title>{category.metadata.name} | Pir Ahmed Shah's Blog</title>
-	<meta name="title" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
-	<meta name="description" content={category.metadata.description} />
+	<title>{data.category.metadata.name} | Pir Ahmed Shah's Blog</title>
+	<meta name="title" content="{data.category.metadata.name} | Pir Ahmed Shah's Blog" />
+	<meta name="description" content={data.category.metadata.description} />
 	<meta name="author" content="Pir Ahmed Shah" />
 	<link rel="canonical" href="https://pirahmedshah.github.io/blog/{page.params.category}/" />
 
 	<meta property="og:type" content="website" />
 	<meta property="og:site_name" content="Pir Ahmed Shah | Dev Blog" />
 	<meta property="og:url" content="https://pirahmedshah.github.io/blog/{page.params.category}/" />
-	<meta property="og:title" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
-	<meta property="og:description" content={category.metadata.description} />
+	<meta property="og:title" content="{data.category.metadata.name} | Pir Ahmed Shah's Blog" />
+	<meta property="og:description" content={data.category.metadata.description} />
 	<meta property="og:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
 	<meta property="og:image:type" content="image/png" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
-	<meta property="og:image:alt" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
+	<meta property="og:image:alt" content="{data.category.metadata.name} | Pir Ahmed Shah's Blog" />
 	<meta property="og:locale" content="en_US" />
 
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:site" content="@AhmedX" />
 	<meta name="twitter:creator" content="@AhmedX" />
 	<meta name="twitter:url" content="https://pirahmedshah.github.io/blog/{page.params.category}/" />
-	<meta name="twitter:title" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
-	<meta name="twitter:description" content={category.metadata.description} />
+	<meta name="twitter:title" content="{data.category.metadata.name} | Pir Ahmed Shah's Blog" />
+	<meta name="twitter:description" content={data.category.metadata.description} />
 	<meta name="twitter:image" content="https://pirahmedshah.github.io/blog/og-image.png" />
-	<meta name="twitter:image:alt" content="{category.metadata.name} | Pir Ahmed Shah's Blog" />
+	<meta name="twitter:image:alt" content="{data.category.metadata.name} | Pir Ahmed Shah's Blog" />
 </svelte:head>
 
 {#key page.url.pathname}
-	<main class="container" in:fade={{ duration: 300 }}>
+	<main class="container" in:fade={{ duration: 100 }}>
 		<!-- Hero -->
 		<header class="hero">
 			<p class="eyebrow">Category</p>
-			<h1>{category.metadata.name}</h1>
-			<p class="description">{category.metadata.description}</p>
+			<h1>{data.category.metadata.name}</h1>
+			<p class="description">{data.category.metadata.description}</p>
 		</header>
 
 		<!-- Category prose content -->
 		<article class="prose">
-			<CategoryContent />
+			<data.content />
 		</article>
 
 		<!-- Tag filter bar -->
-		{#if tags.length > 0}
+		{#if data.tags.length > 0}
 			<section class="filter-section" aria-label="Filter posts by tag">
 				<p class="filter-label">
 					Filter by tag
-					{#if selectedTags.size > 0}
-						<button class="clear-btn" onclick={() => selectedTags.clear()}> Clear all × </button>
+					{#if selectedTags.length > 0}
+						<button class="clear-btn" onclick={() => (selectedTags.length = 0)}>
+							Clear all ×
+						</button>
 					{/if}
 				</p>
 				<div class="tag-list" role="group" aria-label="Tag filters">
-					{#each tags as tag (tag)}
+					{#each data.tags as tag (tag)}
 						<button
 							class="tag"
-							class:active={selectedTags.has(tag)}
-							aria-pressed={selectedTags.has(tag)}
+							class:active={selectedTags.includes(tag)}
+							aria-pressed={selectedTags.includes(tag)}
 							onclick={() => toggleTag(tag)}
 						>
 							{tag}
@@ -96,7 +105,7 @@
 			<div class="grid-container">
 				{#each posts as post (post.id)}
 					<a
-						href={resolve(`/${category.slug}/${post.id}/${post.slug}/`)}
+						href={resolve(`/${data.category.slug}/${post.id}/${post.slug}/`)}
 						class="card"
 						in:fly={{ y: 16, duration: 250 }}
 					>
