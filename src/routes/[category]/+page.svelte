@@ -2,33 +2,26 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { fade, fly } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
+	import TagFilter from '$lib/components/shared/TagFilter.svelte';
 
 	let { data } = $props();
-	let selectedTags = $state<string[]>([]);
 
-	function getFilteredSortedPosts(tags: string[]) {
-		if (tags.length === 0) return data.posts;
+	let selected = $state<string[]>([]);
+
+	const posts = $derived.by(() => {
+		if (selected.length === 0) return data.posts;
 
 		const result = [];
-
 		for (const post of data.posts) {
 			let weight = 0;
 			for (const tag of post.metadata.tags) {
-				if (tags.includes(tag)) weight++;
+				if (selected.includes(tag)) weight++;
 			}
 			if (weight > 0) result.push({ post, weight });
 		}
-
 		return result.sort((a, b) => b.weight - a.weight).map(({ post }) => post);
-	}
-
-	const posts = $derived(getFilteredSortedPosts(selectedTags));
-
-	const toggleTag = (tag: string) => {
-		const idx = selectedTags.indexOf(tag);
-		if (idx !== -1) selectedTags.splice(idx, 1);
-		else selectedTags.push(tag);
-	};
+	});
 </script>
 
 <svelte:head>
@@ -60,47 +53,17 @@
 	<meta name="twitter:image:alt" content="{data.category.metadata.name} | Pir Ahmed Shah's Blog" />
 </svelte:head>
 
-{#key page.url.pathname}
-	<main class="container" in:fade={{ duration: 100 }}>
-		<!-- Hero -->
+{#key page.params.category}
+	<main class="container" in:fly={{ y: -24, duration: 300 }}>
 		<header class="hero">
 			<p class="eyebrow">Category</p>
 			<h1>{data.category.metadata.name}</h1>
 			<p class="description">{data.category.metadata.description}</p>
 		</header>
-
-		<!-- Category prose content -->
 		<article class="prose">
 			<data.content />
 		</article>
-
-		<!-- Tag filter bar -->
-		{#if data.tags.length > 0}
-			<section class="filter-section" aria-label="Filter posts by tag">
-				<p class="filter-label">
-					Filter by tag
-					{#if selectedTags.length > 0}
-						<button class="clear-btn" onclick={() => (selectedTags.length = 0)}>
-							Clear all ×
-						</button>
-					{/if}
-				</p>
-				<div class="tag-list" role="group" aria-label="Tag filters">
-					{#each data.tags as tag (tag)}
-						<button
-							class="tag"
-							class:active={selectedTags.includes(tag)}
-							aria-pressed={selectedTags.includes(tag)}
-							onclick={() => toggleTag(tag)}
-						>
-							{tag}
-						</button>
-					{/each}
-				</div>
-			</section>
-		{/if}
-
-		<!-- Posts grid -->
+		<TagFilter tags={data.tags} bind:selected />
 		{#if posts.length > 0}
 			<div class="grid-container">
 				{#each posts as post (post.id)}
@@ -108,6 +71,7 @@
 						href={resolve(`/${data.category.slug}/${post.id}/${post.slug}/`)}
 						class="card"
 						in:fly={{ y: 16, duration: 250 }}
+						animate:flip={{ duration: 250 }}
 					>
 						<div class="card-body">
 							<h3>{post.metadata.title}</h3>
@@ -182,29 +146,6 @@
 		color: var(--foreground);
 	}
 
-	/* ── Filter bar ───────────────────────────────────────── */
-	.filter-section {
-		margin-bottom: 2.5rem;
-	}
-
-	.filter-label {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		font-size: 0.75rem;
-		font-weight: 600;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--muted-foreground);
-		margin: 0 0 0.75rem;
-	}
-
-	.tag-list {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
-
 	/* ── Tags ─────────────────────────────────────────────── */
 	.tag {
 		appearance: none;
@@ -231,39 +172,12 @@
 		color: var(--primary);
 	}
 
-	.tag.active {
-		background: var(--primary);
-		border-color: var(--primary);
-		color: var(--primary-foreground);
-	}
-
 	/* display-only card tags */
 	.tag--sm {
 		font-size: 0.65rem;
 		padding: 0.2rem 0.5rem;
 		cursor: default;
 		pointer-events: none;
-	}
-
-	/* ── Clear btn ────────────────────────────────────────── */
-	.clear-btn {
-		appearance: none;
-		background: none;
-		border: none;
-		font-family: inherit;
-		font-size: 0.7rem;
-		font-weight: 600;
-		letter-spacing: 0.05em;
-		color: var(--muted-foreground);
-		cursor: pointer;
-		padding: 0;
-		text-decoration: underline;
-		text-underline-offset: 3px;
-		transition: color 0.15s ease;
-	}
-
-	.clear-btn:hover {
-		color: var(--foreground);
 	}
 
 	/* ── Grid ─────────────────────────────────────────────── */
