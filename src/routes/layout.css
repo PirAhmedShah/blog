@@ -187,7 +187,6 @@ pre.shiki::-webkit-scrollbar-thumb {
 .prose h2 {
 	font-size: 1.875rem;
 	letter-spacing: -0.015em;
-	border-bottom: 1px solid var(--border);
 	padding-bottom: 0.3em;
 }
 

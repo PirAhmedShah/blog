@@ -57,7 +57,7 @@
 	<main class="container" in:fly={{ y: -24, duration: 300 }}>
 		<header class="hero">
 			<p class="eyebrow">Category</p>
-			<h1>{data.category.metadata.name}</h1>
+			<h1 class="title">{data.category.metadata.name}</h1>
 			<p class="description">{data.category.metadata.description}</p>
 		</header>
 		<article class="prose">
@@ -123,13 +123,12 @@
 		margin: 0 0 0.75rem;
 	}
 
-	.hero h1 {
+	.title {
 		font-size: clamp(2rem, 5vw, 3.25rem);
 		font-weight: 800;
 		letter-spacing: -0.02em;
 		line-height: 1.1;
 		margin: 0 0 1rem;
-		color: var(--foreground);
 	}
 
 	.description {
@@ -138,12 +137,6 @@
 		max-width: 56ch;
 		line-height: 1.7;
 		margin: 0;
-	}
-
-	/* ── Prose ────────────────────────────────────────────── */
-	.prose {
-		margin-bottom: 3rem;
-		color: var(--foreground);
 	}
 
 	/* ── Tags ─────────────────────────────────────────────── */
