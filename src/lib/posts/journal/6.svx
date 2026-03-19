@@ -1,0 +1,137 @@
+---
+title: "TIL: Svelte 5 Transitions Done Right"
+description: "How Svelte's transition engine actually works, why naive transitions glitch and how crossfade, flip, and deferred transitions fix it."
+date: "2026-03-20"
+author: "Pir Ahmed Shah"
+tags:
+     - svelte
+     - til
+---
+
+# Svelte 5 Transitions Done Right
+
+I have spent a few hours in evening going down the rabbit hole of Svelte's transition engine after my blog's category page had glitchy card animations when filtering by tags. Cards were teleporting, siblings were snapping. Here is what I learned.
+
+## How the transition engine works
+
+Svelte transitions are [declarative](https://en.wikipedia.org/wiki/Declarative_programming#:~:text=In%20computer%20science%2C%20declarative%20programming%20is%20a,a%20computation%20without%20describing%20its%20control%20flow.). When you write `transition:fade` or `in:fly`, you are not writing [imperative](https://en.wikipedia.org/wiki/Imperative_programming#:~:text=In%20computer%20science%2C%20imperative%20programming%20is%20a%20programming%20paradigm%20of%20software%20that%20uses%20statements%20that%20change%20a%20process%27%20state.) animation code instead you are giving Svelte metadata to compute CSS `@keyframes` just before an element enters or leaves the DOM.
+
+A transition is **triggered** by an element entering or leaving the DOM as a result of a state change. **Svelte batches all transitions within the same microtask tick.** Every element mounting or destroying in the same state update gets collected before any CSS is generated. This is what makes cross-element coordination possible.
+
+Everything runs off the main thread via CSS animations. Svelte generates `@keyframes` dynamically and injects them into a `<style>` tag, so layout and paint happen in the compositor, not in JS.
+
+## Why naive transitions glitch
+
+With a basic transition (`fly`,`fade`,...) on list items, three things go wrong:
+
+- The item **disappears and reappears** instead of traveling between positions
+- **Siblings snap** to their new positions when an item is removed
+- Interrupted transitions produce **flicker** from competing keyframes
+
+The reason: each element animates independently with no awareness of the others. Svelte destroys the element in list A and mounts it in list B as two completely separate operations.
+
+## Fix 1: `crossfade` for items that move between lists
+
+`crossfade()` creates a `[send, receive]` pair. When an element is sent, it captures its `getBoundingClientRect()` and registers it by key. When the matching element is received in another list, it reads that saved position and generates a `transform: translate(dx, dy)` animation from there. The result looks like the element physically traveled.
+
+```ts
+// transition.ts
+import { crossfade } from 'svelte/transition';
+import { quintOut } from 'svelte/easing';
+
+export const [send, receive] = crossfade({
+	duration: 350,
+	easing: quintOut,
+	fallback: (node) => ({
+		duration: 250,
+		css: (t) => `opacity: ${t}; transform: scale(${0.9 + t * 0.1})`
+	})
+});
+```
+
+```svelte
+<!-- +page.svelte -->
+{#each todos as todo (todo.id)}
+	<li
+		in:receive={{ key: todo.id }}
+		out:send={{ key: todo.id }}
+	>
+		{todo.description}
+	</li>
+{/each}
+```
+
+The `key` is critical as it's how Svelte matches the outgoing element in one list to the incoming element in another. Without matching keys and it falls back to (`fallback: Function`) independent transitions.
+
+The `fallback` handles items with no counterpart. Like newly added items or items being removed entirely rather than moved.
+
+## Fix 2: `animate:flip` for siblings that are not transitioning
+
+Even with crossfade working, the items that *stay* in the list still snap to their new positions. `animate:flip` fixes this.
+
+FLIP stands for First, Last, Invert, Play. Svelte snapshots every sibling's position before the DOM update, lets the update happen, snapshots again, then applies the inverse transform so the element appears to still be in the old position. Then it removes that transform with a CSS transition — the element smoothly plays into its new spot.
+
+```svelte
+{#each todos as todo (todo.id)}
+	<li
+		in:receive={{ key: todo.id }}
+		out:send={{ key: todo.id }}
+		animate:flip={{ duration: 200 }}
+	>
+		{todo.description}
+	</li>
+{/each}
+```
+
+Duration can be a function of distance traveled, which feels more natural:
+
+```svelte
+<a animate:flip={{ duration: (d) => Math.sqrt(d) * 15 }}>
+    {item}
+</a>
+```
+
+Items that travel further take proportionally longer.
+
+## The full picture
+
+| Problem                      | Directive                 | Mechanism                                    |
+| ---------------------------- | ------------------------- | -------------------------------------------- |
+| Item teleports between lists | `in:receive` + `out:send` | Cross-list position handoff via key registry |
+| Siblings snap on reorder     | `animate:flip`            | FLIP snapshots before/after, inverts, plays  |
+| Filtered items vanish        | `out:fade`                | Explicit exit transition                     |
+| No counterpart found         | `fallback` in crossfade   | Independent transition for new/removed items |
+
+## Common mistakes
+
+**Forgetting the keyed `{#each}`.**  Without `(item.id)`, Svelte reuses DOM nodes and the crossfade registry cannot match the right elements.
+
+```svelte
+<!-- wrong -->
+{#each posts as post}
+
+<!-- right -->
+{#each posts as post (post.id)}
+```
+
+**Mismatched durations.** If crossfade takes 400ms but flip takes 100ms, siblings finish moving before the item arrives. Keep them close, or make flip slightly shorter than crossfade.
+
+**Sharing a `crossfade` pair across unrelated components.** The registry matches by key globally within the same pair. Create separate `crossfade()` instances per logical list group.
+
+## What I shipped
+
+For my blog's tag filter I ended up with:
+
+```svelte
+{#each posts as post (post.id)}
+    <a
+        ...
+        in:fly={{ y: 16, duration: 250 }}
+        animate:flip={{ duration: 250 }}
+    >
+        ...
+    </a>
+{/each}
+```
+
+No crossfade needed here since cards are not moving between two lists, they are just entering and leaving a single grid. `fly` in, `flip` for the siblings. Clean enough.
