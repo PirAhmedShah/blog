@@ -3,7 +3,7 @@ name: "Stack"
 description: "Practical projects, coding tutorials, and step-by-step implementation guides."
 color: "#D08770"
 icon: "Hammer"
-order: 2
+order: 3
 ---
 
 Building is where the fun happens. This space is all about getting my hands dirty with code, turning ideas into working software, figuring out edge cases, and documenting the actual implementations.
