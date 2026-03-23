@@ -1,0 +1,490 @@
+---
+title: "Resource: Beginner's Guide to Github Actions"
+description: "A beginner's guide to setup Github Actions in your repository. Write your first workflow."
+date: "2026-03-23"
+author: "Pir Ahmed Shah"
+tags:
+     - workflow
+     - productivity
+     - resource
+---
+
+## What is GitHub Actions?
+
+GitHub Actions is a CI/CD platform built into GitHub. You can write workflow files that tell GitHub to run commands automatically when something happens in your repo. It could be a push, a pull request or even a manual button click etc.
+
+Everything lives in `.github/workflows/` as YAML files.
+
+## Core Concepts
+
+### Workflow
+A single YAML file in `.github/workflows/`. One repo can have many workflows. Each workflow runs independently.
+
+### Event (trigger)
+What causes the workflow to run. Examples: a push to `main`, opening a pull request, a manual trigger, a schedule.
+
+### Job
+A workflow contains one or more jobs. Each job runs on its own fresh virtual machine. Jobs run in parallel by default and you have to explicitly tell them to wait for each other.
+
+### Step
+A job contains one or more steps. Steps run in sequence on the same machine. Each step is either a shell command or a pre-built action.
+
+### Runner
+The virtual machine that runs your job. GitHub provides free hosted runners (`ubuntu-latest`, `windows-latest`, `macos-latest`). Ubuntu is the default choice for most server-side work.
+
+
+## Anatomy of a Workflow File
+
+```yaml
+name: CI                            # shown in the GitHub Actions UI
+
+on:                                 # trigger(s)
+  push:                             # event name
+    branches: [main]                # filters
+
+  issues:                           # event name
+    types:                          # activity types
+      - first_issue
+  pull_request:
+    branches:
+      - main
+      - dev
+      - 'mona/octocat'
+      - 'releases/**'
+
+#on: [push,issue, pull_request] you can do like this, it will run for all branches or you can specify the branches
+
+jobs:
+  build:                            # job id (your name, used for dependencies)
+    runs-on: ubuntu-latest          # runner OS
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run tests
+        run: pnpm test
+```
+
+### Key Fields
+
+| Field     | What it does                              |
+| --------- | ----------------------------------------- |
+| `name`    | Label shown in GitHub UI                  |
+| `on`      | Event(s) that trigger the workflow        |
+| `jobs`    | Map of jobs to run                        |
+| `runs-on` | Which OS/runner to use                    |
+| `steps`   | Ordered list of things to do              |
+| `uses`    | Run a pre-built action (from marketplace) |
+| `run`     | Run a raw shell command                   |
+
+
+## Triggers (`on`)
+
+### Push to a branch
+```yaml
+on:
+  push:
+    branches: [main]
+```
+
+### Push to multiple branches
+```yaml
+on:
+  push:
+    branches: [main, develop]
+```
+
+### Only when specific files change
+```yaml
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
+```
+Useful for only triggering deploys when relevant files actually changed.
+
+### Pull request
+```yaml
+on:
+  pull_request:
+    branches: [main]   # runs when a PR targets main
+```
+
+### Manual trigger
+```yaml
+on:
+  workflow_dispatch:   # adds a "Run workflow" button in the GitHub UI
+```
+
+You can also add inputs to manual triggers:
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy target'
+        required: true
+        default: 'staging'
+```
+
+### Schedule (cron)
+```yaml
+on:
+  schedule:
+    - cron: '0 2 * * *'   # runs every day at 2am UTC
+```
+
+### Multiple triggers
+```yaml
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+```
+
+
+## Steps
+
+### Running a shell command
+```yaml
+- name: Build project
+  run: pnpm build
+```
+
+Multi-line commands:
+```yaml
+- name: Setup and build
+  run: |
+    echo "Starting build..."
+    pnpm install
+    pnpm build
+```
+
+### Using a pre-built action
+Actions are reusable units from the GitHub Marketplace. You reference them with `uses`.
+
+```yaml
+- name: Checkout code
+  uses: actions/checkout@v4
+```
+
+Always pin to a version tag (`@v4`) not `@main`. It prevents upstream changes from breaking your workflow.
+
+Common actions:
+
+| Action                   | What it does                              |
+| ------------------------ | ----------------------------------------- |
+| `actions/checkout@v4`    | Clones your repo into the runner          |
+| `actions/setup-node@v4`  | Installs a specific Node version          |
+| `actions/cache@v4`       | Caches dependencies between runs          |
+| `appleboy/ssh-action@v1` | SSH into a remote server and run commands |
+
+### Passing options to an action
+```yaml
+- name: Setup Node
+  uses: actions/setup-node@v4
+  with:
+    node-version: '22'
+```
+
+### Setting environment variables for a step
+```yaml
+- name: Run tests
+  run: pnpm test
+  env:
+    NODE_ENV: test
+    DATABASE_URL: ${{ secrets.DATABASE_URL }}
+```
+
+
+## Secrets
+
+Never hardcode passwords, tokens, or keys in workflow files.
+
+Store them in **Settings → Secrets and variables → Actions** in your GitHub repo. Then reference them in workflows as:
+
+```yaml
+${{ secrets.MY_SECRET_NAME }}
+```
+
+Example: SSH into a VPS:
+```yaml
+- name: Deploy to VPS
+  uses: appleboy/ssh-action@v1
+  with:
+    host: ${{ secrets.VPS_HOST }}
+    username: ${{ secrets.VPS_USER }}
+    key: ${{ secrets.VPS_SSH_KEY }}
+    script: |
+      cd /app
+      docker compose pull
+      docker compose up -d
+```
+
+### Setting up an SSH secret
+
+1. Generate a key pair locally: `ssh-keygen -t ed25519 -C "github-actions"`
+2. Add the **public key** to your VPS: `~/.ssh/authorized_keys`
+3. Add the **private key** as a GitHub secret named `VPS_SSH_KEY`
+
+
+## Environment Variables
+
+### Workflow-level (available to all jobs)
+```yaml
+env:
+  NODE_ENV: production
+  APP_PORT: 8080
+
+jobs:
+  deploy:
+    ...
+```
+
+### Job-level (available to all steps in a job)
+```yaml
+jobs:
+  build:
+    env:
+      CACHE_KEY: my-cache
+    steps:
+      ...
+```
+
+### Step-level (available to that step only)
+```yaml
+- name: Build
+  run: pnpm build
+  env:
+    BUILD_MODE: fast
+```
+
+### Built-in variables GitHub provides
+```yaml
+${{ github.sha }}          # full commit SHA
+${{ github.ref_name }}     # branch name
+${{ github.actor }}        # who triggered the workflow
+${{ github.repository }}   # owner/repo-name
+```
+
+
+## Job Dependencies
+
+By default jobs run in parallel. Use `needs` to make a job wait for another.
+
+```yaml
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pnpm lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: pnpm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [lint, test]    # only runs if both lint and test pass
+    steps:
+      - run: echo "Deploying..."
+```
+
+
+## Conditional Steps
+
+Run a step only under certain conditions:
+
+```yaml
+# Only run on main branch
+- name: Deploy
+  if: github.ref_name == 'main'
+  run: ./deploy.sh
+
+# Only run if previous step failed
+- name: Notify failure
+  if: failure()
+  run: echo "Something broke"
+
+# Only run on manual trigger
+- name: Seed database
+  if: github.event_name == 'workflow_dispatch'
+  run: pnpm db:seed
+```
+
+
+## Caching Dependencies
+
+Without caching, every run installs packages from scratch. Caching makes subsequent runs much faster.
+
+```yaml
+- name: Cache pnpm store
+  uses: actions/cache@v4
+  with:
+    path: ~/.pnpm-store
+    key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+    restore-keys: |
+      pnpm-${{ runner.os }}-
+```
+
+The `key` includes a hash of your lockfile. When the lockfile changes, the cache is invalidated and packages are re-installed fresh.
+
+
+## A Real-World Example
+
+Here is a complete CI + CD setup for a NestJS API:
+
+### `.github/workflows/ci.yml`
+Runs on every push and pull request. Lints, tests, and builds.
+
+```yaml
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+```
+
+### `.github/workflows/cd.yml`
+Runs only on push to `main`. Builds the Docker image and deploys to VPS.
+
+```yaml
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and push Docker image
+        run: |
+          echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /app
+            IMAGE_TAG=${{ github.sha }} docker compose -f compose.prod.yaml pull api
+            docker compose -f compose.prod.yaml up -d --no-deps api
+```
+
+### `.github/workflows/bootstrap.yml`
+Manual only. Run once to set up a fresh VPS.
+
+```yaml
+name: Bootstrap VPS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create directory structure
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: mkdir -p /app/secrets /app/migrations
+
+      - name: Copy secrets to VPS
+        run: |
+          echo "${{ secrets.DB_PASSWORD }}"      > db_password.secret
+          echo "${{ secrets.CACHE_PASSWORD }}"   > cache_password.secret
+          echo "${{ secrets.JWT_PRIVATE_KEY }}"  > jwt_private.pem
+          echo "${{ secrets.JWT_PUBLIC_KEY }}"   > jwt_public.pem
+          scp -i <(echo "${{ secrets.VPS_SSH_KEY }}") \
+            db_password.secret cache_password.secret jwt_private.pem jwt_public.pem \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/app/secrets/
+
+      - name: Sync config and first compose up
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /app
+            docker compose -f compose.prod.yaml up -d
+```
+
+
+## Common Mistakes
+
+**Forgetting `actions/checkout`**: the runner starts with an empty filesystem. Without this step, none of your repo files exist.
+
+**Not pinning action versions**: `uses: actions/checkout@main` can break silently when the action updates. Always use `@v4` style tags.
+
+**Putting secrets in `run:` echo statements**: GitHub will mask them in logs but it's still bad practice. Pass secrets via `env:` instead.
+
+**Running deploy on every push**: scope your CD workflow to `branches: [main]` so feature branch pushes don't trigger deploys.
+
+**No `needs:` on deploy job**: without it, deploy can run in parallel with tests and ship broken code. Always gate deploy on CI passing.
+
+
+## Useful Tips
+
+**View logs**: go to the Actions tab in your repo, click a workflow run, then click any job to see step-by-step output.
+
+**Re-run a failed job**: click "Re-run failed jobs" in the UI without needing a new push.
+
+**Dry-run locally before pushing**: use [act](https://github.com/nektos/act) to run workflows locally.
+
+**Workflow syntax reference**: `https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions`
