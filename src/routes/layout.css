@@ -38,6 +38,14 @@
 	--sidebar-accent-foreground: #2e3440;
 	--sidebar-border: #d8dee9;
 	--sidebar-ring: #4c6f99;
+
+	/* Table */
+	--table-header-bg: #4c6f99;
+	--table-header-fg: #eceff4;
+	--table-row-even: #e5e9f0;
+	--table-row-odd: #eceff4;
+	--table-row-hover: #d8e4ef;
+	--table-border: #c4cdd9;
 }
 
 /* =========================================
@@ -72,11 +80,20 @@
 	--sidebar-accent-foreground: #eceff4;
 	--sidebar-border: #4c566a;
 	--sidebar-ring: #88c0d0;
+
+	/* Table */
+	--table-header-bg: #4c566a;
+	--table-header-fg: #eceff4;
+	--table-row-even: #3b4252;
+	--table-row-odd: #2e3440;
+	--table-row-hover: #434c5e;
+	--table-border: #4c566a;
 }
 
 * {
 	scroll-behavior: smooth;
 }
+
 /* =========================================
    Base Styles
    ========================================= */
@@ -156,7 +173,7 @@ pre.shiki::-webkit-scrollbar-thumb {
 .prose {
 	color: var(--foreground);
 	line-height: 1.8;
-	font-size: 1.125rem;
+	font-size: 1rem; /* was 1.125rem — slightly more balanced base */
 	max-width: 65ch;
 	margin: 0 auto;
 }
@@ -176,7 +193,7 @@ pre.shiki::-webkit-scrollbar-thumb {
 }
 
 .prose h1 {
-	font-size: 2.5rem;
+	font-size: 2rem; /* was 2.5rem */
 	font-weight: 800;
 	letter-spacing: -0.025em;
 	margin-top: 0;
@@ -185,18 +202,18 @@ pre.shiki::-webkit-scrollbar-thumb {
 }
 
 .prose h2 {
-	font-size: 1.875rem;
+	font-size: 1.5rem; /* was 1.875rem */
 	letter-spacing: -0.015em;
 	padding-bottom: 0.3em;
 }
 
 .prose h3 {
-	font-size: 1.5rem;
+	font-size: 1.25rem; /* was 1.5rem */
 	letter-spacing: -0.01em;
 }
 
 .prose h4 {
-	font-size: 1.25rem;
+	font-size: 1.0625rem; /* was 1.25rem */
 }
 
 /* --- Paragraphs & Links --- */
@@ -285,4 +302,108 @@ pre.shiki::-webkit-scrollbar-thumb {
 	box-shadow:
 		0 4px 6px -1px rgb(0 0 0 / 0.1),
 		0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* =========================================
+   Tables
+   ========================================= */
+
+/* Scrollable wrapper — wrap <table> in <div class="table-wrapper"> */
+.table-wrapper {
+	width: 100%;
+	box-sizing: border-box;
+	overflow-x: auto;
+	border-radius: var(--radius);
+	border: 1px solid var(--table-border);
+	margin: 2em 0;
+}
+
+.table-wrapper::-webkit-scrollbar {
+	height: 6px;
+}
+.table-wrapper::-webkit-scrollbar-track {
+	background: transparent;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+	background: var(--border);
+	border-radius: var(--radius);
+}
+
+/* No wrapper? Make the table itself scroll */
+.prose > table {
+	display: block;
+	overflow-x: auto;
+	box-sizing: border-box;
+	margin: 2em 0;
+}
+
+.prose table {
+	border-collapse: collapse;
+	table-layout: auto;
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+
+/* --- Header --- */
+.prose thead {
+	background-color: var(--table-header-bg);
+	color: var(--table-header-fg);
+}
+
+.prose thead th {
+	padding: 0.65rem 1rem;
+	font-size: 0.8rem;
+	font-weight: 600;
+	text-align: left;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	border-bottom: 2px solid var(--table-border);
+	white-space: nowrap; /* keep header labels on one line */
+}
+
+.prose thead th:first-child {
+	border-radius: var(--radius) 0 0 0;
+}
+.prose thead th:last-child {
+	border-radius: 0 var(--radius) 0 0;
+}
+
+/* --- Body rows --- */
+.prose tbody tr {
+	border-bottom: 1px solid var(--table-border);
+	transition: background-color 0.15s ease;
+}
+.prose tbody tr:last-child {
+	border-bottom: none;
+}
+.prose tbody tr:nth-child(odd) {
+	background-color: var(--table-row-odd);
+}
+.prose tbody tr:nth-child(even) {
+	background-color: var(--table-row-even);
+}
+.prose tbody tr:hover {
+	background-color: var(--table-row-hover);
+}
+
+/* --- Cells --- */
+.prose td,
+.prose th {
+	padding: 0.6rem 1rem;
+	vertical-align: middle;
+	border-right: 1px solid var(--table-border);
+	overflow-wrap: break-word;
+}
+
+.prose td:last-child,
+.prose th:last-child {
+	border-right: none;
+}
+
+/* --- Optional footer --- */
+.prose tfoot td {
+	font-weight: 600;
+	background-color: var(--muted);
+	color: var(--muted-foreground);
+	border-top: 2px solid var(--table-border);
 }
