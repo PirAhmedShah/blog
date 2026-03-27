@@ -19,6 +19,8 @@
 	.page-wrapper {
 		display: grid;
 		grid-template-columns: 0.75fr 0.25fr;
+		min-height: 100vh;
+		align-items: start;
 		margin: 0 auto;
 	}
 
