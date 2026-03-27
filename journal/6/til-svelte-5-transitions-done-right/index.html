@@ -21,13 +21,13 @@
 			})();
 		</script>
 
-		<link href="../../../_app/immutable/entry/start.Cojq1mPF.js" rel="modulepreload">
-		<link href="../../../_app/immutable/chunks/_6X-piE0.js" rel="modulepreload">
+		<link href="../../../_app/immutable/entry/start.zR8N9Vs2.js" rel="modulepreload">
+		<link href="../../../_app/immutable/chunks/DjWEmNG0.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/CZfSoZA4.js" rel="modulepreload">
-		<link href="../../../_app/immutable/chunks/DxDGF-Ic.js" rel="modulepreload">
+		<link href="../../../_app/immutable/chunks/B8j8_D2O.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/DAt_-quJ.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/CYgJF_JY.js" rel="modulepreload">
-		<link href="../../../_app/immutable/entry/app.Ca7iGCqh.js" rel="modulepreload">
+		<link href="../../../_app/immutable/entry/app.DgorsIDB.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/PPVm8Dsz.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/Bbv5b1-c.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/CHQgHo8F.js" rel="modulepreload">
@@ -35,18 +35,18 @@
 		<link href="../../../_app/immutable/chunks/CSLVcaqt.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/BB0YS-Mo.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/CxjYVZ8y.js" rel="modulepreload">
-		<link href="../../../_app/immutable/nodes/0.CnpDQ1kY.js" rel="modulepreload">
+		<link href="../../../_app/immutable/nodes/0.DTde6a0k.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/BVupIrvs.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/mKoLr46I.js" rel="modulepreload">
-		<link href="../../../_app/immutable/nodes/2.C-s8fZDf.js" rel="modulepreload">
-		<link href="../../../_app/immutable/chunks/DGqq3chV.js" rel="modulepreload">
+		<link href="../../../_app/immutable/nodes/2.DA7gF4Ml.js" rel="modulepreload">
+		<link href="../../../_app/immutable/chunks/DUuzFv--.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/C86n96JA.js" rel="modulepreload">
-		<link href="../../../_app/immutable/chunks/IKIu9mvS.js" rel="modulepreload">
-		<link href="../../../_app/immutable/chunks/D4vN1qWp.js" rel="modulepreload">
+		<link href="../../../_app/immutable/chunks/N2UG0fvp.js" rel="modulepreload">
+		<link href="../../../_app/immutable/chunks/BV9Qn5hy.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/Bxn9pBx-.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/BHSI4yNj.js" rel="modulepreload">
-		<link href="../../../_app/immutable/nodes/6.CZ9GaiaY.js" rel="modulepreload">
-		<link href="../../../_app/immutable/chunks/BGd8nx7y.js" rel="modulepreload">
+		<link href="../../../_app/immutable/nodes/6.CQbrDWFM.js" rel="modulepreload">
+		<link href="../../../_app/immutable/chunks/BC5DYNBK.js" rel="modulepreload">
 		<link href="../../../_app/immutable/chunks/DtZPBYok.js" rel="modulepreload">
 		<!--hlydkj--><meta name="title" content="TIL: Svelte 5 Transitions Done Right | journal | Pir Ahmed Shah's Blog"/> <meta name="description" content="How Svelte's transition engine actually works, why naive transitions glitch and how crossfade, flip, and deferred transitions fix it."/> <meta name="author" content="Pir Ahmed Shah"/> <link rel="canonical" href="https://pirahmedshah.github.io/blog/journal/6/til-svelte-5-transitions-done-right/"/> <meta property="og:type" content="article"/> <meta property="og:site_name" content="Pir Ahmed Shah | Dev Blog"/> <meta property="og:url" content="https://pirahmedshah.github.io/blog/journal/6/til-svelte-5-transitions-done-right/"/> <meta property="og:title" content="TIL: Svelte 5 Transitions Done Right | journal"/> <meta property="og:description" content="How Svelte's transition engine actually works, why naive transitions glitch and how crossfade, flip, and deferred transitions fix it."/> <meta property="og:image" content="https://pirahmedshah.github.io/blog/images/thumbnails/journal/6.webp"/> <meta property="og:image:alt" content="TIL: Svelte 5 Transitions Done Right"/> <meta property="og:locale" content="en_US"/> <meta property="article:published_time" content="2026-03-20"/> <meta property="article:author" content="Pir Ahmed Shah"/> <meta property="article:section" content="journal"/> <meta name="twitter:card" content="summary_large_image"/> <meta name="twitter:site" content="@AhmedX"/> <meta name="twitter:creator" content="@AhmedX"/> <meta name="twitter:url" content="https://pirahmedshah.github.io/blog/journal/6/til-svelte-5-transitions-done-right/"/> <meta name="twitter:title" content="TIL: Svelte 5 Transitions Done Right | journal"/> <meta name="twitter:description" content="How Svelte's transition engine actually works, why naive transitions glitch and how crossfade, flip, and deferred transitions fix it."/> <meta name="twitter:image" content="https://pirahmedshah.github.io/blog/images/thumbnails/journal/6.webp"/> <meta name="twitter:image:alt" content="TIL: Svelte 5 Transitions Done Right"/><!----><title>TIL: Svelte 5 Transitions Done Right | journal | Pir Ahmed Shah's Blog</title>
 		<style>.theme-toggle.svelte-bxe964{padding:.5rem;display:flex;justify-content:center;cursor:pointer;background:var(--bg-card);color:var(--text-primary);overflow:hidden;border:none}.theme-toggle.svelte-bxe964:hover{color:var(--primary)}.icon-container.svelte-bxe964{position:relative}.sun.svelte-bxe964,.moon.svelte-bxe964{position:absolute;top:0;left:0;transition:transform .4s cubic-bezier(0,1.3,.84,1.15),opacity .3s ease}[data-theme=light] .sun.svelte-bxe964{opacity:1;transform:rotate(0) scale(1)}[data-theme=light] .moon.svelte-bxe964{opacity:0;transform:rotate(180deg) scale(0)}[data-theme=dark] .sun.svelte-bxe964{opacity:0;transform:rotate(-180deg) scale(0)}[data-theme=dark] .moon.svelte-bxe964{opacity:1;transform:rotate(0) scale(1)}header.svelte-65ig37{transition:all .3 ease;display:flex;justify-content:space-between;align-items:center;padding:1vw 2vw;border-bottom:1px solid var(--border)}header.svelte-65ig37 ul:where(.svelte-65ig37){display:flex;list-style:none;margin:0;padding:0;gap:2vw}ul.svelte-65ig37 li:where(.svelte-65ig37) a:where(.svelte-65ig37){color:var(--muted-foreground);text-decoration:none}ul.svelte-65ig37 li:where(.svelte-65ig37) a:where(.svelte-65ig37):hover,.active.svelte-65ig37 a:where(.svelte-65ig37){color:var(--primary)}.active.svelte-65ig37 a:where(.svelte-65ig37){font-weight:600}
@@ -104,7 +104,7 @@
 			
 			<script>
 				{
-					__sveltekit_mdlnmc = {
+					__sveltekit_1e7w7sg = {
 						base: new URL("../../..", location).pathname.slice(0, -1),
 						assets: "/blog"
 					};
@@ -112,8 +112,8 @@
 					const element = document.currentScript.parentElement;
 
 					Promise.all([
-						import("../../../_app/immutable/entry/start.Cojq1mPF.js"),
-						import("../../../_app/immutable/entry/app.Ca7iGCqh.js")
+						import("../../../_app/immutable/entry/start.zR8N9Vs2.js"),
+						import("../../../_app/immutable/entry/app.DgorsIDB.js")
 					]).then(([kit, app]) => {
 						kit.start(app, element, {
 							node_ids: [0, 2, 6],
