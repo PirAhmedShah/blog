@@ -1,0 +1,52 @@
+---
+title: "Weekly Log: 13 - March 2026"
+description: "Automating Infrastructure: From Manual Builds to CI/CD."
+date: "2026-03-27"
+author: "Pir Ahmed Shah"
+tags:
+     - retrospective
+     - prospective
+     - weekly
+     - project
+     - workflow
+     - testing
+     - dx
+     - learning
+---
+
+## Weekly Retrospective
+
+### Technical Progress
+
+This week I revamped my blog website and transitioned from manual server management to **Infrastructure as Code (IaC)** approach. I successfully experimented the entire lifecycle of a new VPS using GitHub Actions.
+
+* **Frontend Engineering & Optimization:** Revamped the blog's core architecture by migrating to a numeric ID-based SEO routing system and implementing a weighted tag-matching algorithm for post ranking. I achieved significant performance gains by inlining critical CSS, resizing assets for smaller payloads, and resolving Layout Shift (CLS) issues which improved my Lighthouse score from 81 to 99. Also added dynamic open graph tags.
+
+* **Automation:** Built a comprehensive `bootstrap.yaml` workflow that handles initial server setup which includes automated docker installation, the creation of non-privileged `$VPS_USER` user, and strict **SSH hardening** (disabling root login, password and limiting auth tries) to minimize the attack surface.
+
+* **Linux:** I started exploring **Namespaces** and **Cgroups** to understand the kernel-level isolation that makes containers work in C. I also focused on network security through **UFW** and **SSH** configuration management.
+
+* **Blogs:**
+    * A deep dive into [**Svelte 5 Transitions**](https://pirahmedshah.github.io/blog/journal/6/til-svelte-5-transitions-done-right/).
+    * A technical resource on [**Bash Redirection Operators**](https://pirahmedshah.github.io/blog/scripts/0/resource-bash-redirection-operators-cheatsheet/).
+    * A contribution log I did in 2024 for a [**Roblox Player Finder**]( https://pirahmedshah.github.io/blog/stack/0/project-contributing-to-a-roblox-player-finder/) project.
+    * An introductory guide to [**GitHub Actions**](https://pirahmedshah.github.io/blog/journal/7/resource-beginners-guide-to-github-actions/).
+
+    
+* **Deployment Pipeline:** Successfully implemented automated file synchronization via `scp-action` to ensure production configurations for Nginx and Docker Compose are always up to date on the VPS. I'm planning to use intelligent syncing (`rsync -avcz`) command instead of copying entire files in future. 
+
+---
+
+## Weekly Prospective
+
+### Primary Goals
+
+* **Rodevsy AuthModule:** Complete the core logic for the authentication module and move it into the testing phase.
+* **Testing:** Develop and execute a full suite of **Unit** and **End-to-End (E2E)** tests to ensure the module is free of critical bugs.
+* **Workflow:** Design and implement **Reusable Workflows** (`ci.yaml` and `cd.yaml`). The aim is to create a modular CI/CD architecture that can be shared across multiple repositories to reduce configuration drift.
+
+### Risks & Blockers
+
+* **Docker Privilege Escalation:** Investigating a transition to Rootless Docker to mitigate the risk where any user in the `docker` group can gain host-level root access via container volume mounts `-v /:/mnt`. The primary blocker is implementing this hardened isolation without breaking existing container networking or volume permissions. 
+
+> "Foundational knowledge is what makes you stand out."

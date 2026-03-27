@@ -1,5 +1,5 @@
 ---
-title: "Weekly Log: 11 - February 2026"
+title: "Weekly Log: 11 - March 2026"
 description: "Weekly retrospective and prospective."
 date: "2026-03-16"
 author: "Pir Ahmed Shah"
