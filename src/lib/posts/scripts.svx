@@ -1,17 +1,16 @@
 ---
 name: "Scripts"
-description: "Luau engineering and Roblox ecosystem notes."
+description: "Lua, Shell, and Bash engineering."
 color: "#B48EADFF"
 icon: "Code"
 order: 4
 ---
 
-I've been in the Roblox space for a long time. This category covers the technical side of Luau engineering that you don't usually find on the DevForum.
+I've been writing scripts to solve complex problems, automate workflows, and connect systems for a while. This category covers the technical side of Shell, Bash, and Lua scripting that handles the heavy lifting behind the scenes.
 
-## Technical Luau
-- Custom module loaders and DataStore patterns
-- Anti-cheat logic and remote security
-- Scaling Roblox-based infrastructure
+## Scripting & Tooling
+- Custom CLI tools and developer workflow optimization
+- Deployment execution, server management, and CI/CD logic
+- Data processing, system administration, and environment configuration
 
-
-*For the Roblox power-users.*
+*For the CLI users.*
