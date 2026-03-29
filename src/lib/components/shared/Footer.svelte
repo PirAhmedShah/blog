@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { Github, Linkedin, Mail } from '@lucide/svelte';
+	import Github from '@lucide/svelte/icons/github';
+	import Linkedin from '@lucide/svelte/icons/linkedin';
+	import Mail from '@lucide/svelte/icons/mail';
 </script>
 
 <footer class="site-footer">

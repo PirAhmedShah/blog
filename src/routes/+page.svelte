@@ -1,7 +1,23 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import type { IconProps } from '@lucide/svelte';
+	import Book from '@lucide/svelte/icons/book';
+	import Code from '@lucide/svelte/icons/code';
+	import Hammer from '@lucide/svelte/icons/hammer';
+	import Rocket from '@lucide/svelte/icons/rocket';
+	import Terminal from '@lucide/svelte/icons/terminal';
+	import type { Component } from 'svelte';
 	import { fade } from 'svelte/transition';
-	import * as Icons from '@lucide/svelte';
+	//for optimizations, instead of importing ALL icons, we must import only the ones we are using
+	//import * as Icons from '@lucide/svelte';
+
+	const Icons: Record<string, Component<IconProps>> = {
+		Hammer: Hammer,
+		Rocket: Rocket,
+		Code: Code,
+		Terminal: Terminal,
+		Book: Book
+	};
 
 	let { data } = $props();
 	const categories = $derived(data.categories);
