@@ -18,7 +18,9 @@ const langs = [
 	'svelte',
 	'sql',
 	'lua',
-	'yaml'
+	'yaml',
+	'cpp',
+	'rust'
 ];
 
 const highlighter = await createHighlighter({

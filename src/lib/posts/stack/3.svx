@@ -1,0 +1,81 @@
+---
+title: "Visualizing Algorithms: Render-Throttled Pathfinding"
+description: "How to decouple algorithmic execution from the render loop to create smooth, real-time visualizations of BFS and DFS without multithreading."
+date: "2026-03-29"
+author: "Pir Ahmed Shah"
+tags:
+  - cpp
+  - algorithms
+  - sdl3
+  - game-dev
+---
+
+# Visualizing Algorithms: Render-Throttled Pathfinding
+
+Algorithm visualization is a staple of computer science education and game development. Whether it's watching a maze carve itself out via Depth-First Search (DFS) or watching a pathfinding algorithm diffuse outward via Breadth-First Search (BFS), the visual feedback is incredibly satisfying.
+
+However, there's a catch: a standard `while(!queue.empty())` loop will execute the *entire* algorithm in a single frame. This not only ruins the visual effect but can also cause a noticeable frame hitch on large grids. 
+
+The solution? **Render Throttling**.
+
+## The Problem: The Blocking Loop
+
+In a naive implementation, the pathfinding logic runs to completion before the `render()` function is ever called. To visualize it, developers often resort to complex multithreading or coroutine systems, which introduce significant overhead and complexity to a simple C++ project.
+
+## The Solution: Yielding to the Game Loop
+
+Instead of running the algorithm to completion, we can artificially throttle it by yielding control back to the main game loop (`game->step()`) at regular intervals. This allows the engine to process OS events (like the user pressing 'P' to pause), update the camera, and draw the current intermediate state of the grid.
+
+Here is how it's implemented in the BFS algorithm:
+
+```cpp
+void Maze::breadthFirstSearch(int sX, int sY, int dX, int dY) {
+    // ... initialization of queue, visited array, etc.
+    
+    int renderThrottling = 0;
+
+    while (!q.empty() && game->running && busy) {
+        const std::pair<int, int> current = q.front();
+        q.pop();
+
+        if (current.first == dX && current.second == dY) {
+            destinationReached = true;
+            break;
+        }
+
+        // ... neighbor evaluation and queue pushing logic ...
+
+        // THE MAGIC: Render Throttling
+        if (renderThrottling-- == 0) {
+            game->step(); // Process events, update, and render the current frame
+            renderThrottling = q.size(); // Reset throttle based on remaining work
+        }
+
+        cells[current.second][current.first].state = CELL_STATE_HIGHLIGHTED;
+        markCellAndNeighboursUpdate(current.first, current.second);
+    }
+    
+    // ... backtracking and cleanup logic ...
+}
+```
+
+### How the Throttle Works:
+1. `renderThrottling` acts as a countdown timer.
+2. Each iteration of the `while` loop, it decrements (`renderThrottling--`).
+3. When it hits `0`, we call `game->step()`. This function handles `SDL_PollEvent`, updates the camera, and calls `SDL_RenderPresent`.
+4. We then reset `renderThrottling` to `q.size()` (or a fixed number). This creates a dynamic pacing: the algorithm processes more steps per frame when the queue is large (the initial explosion of BFS), and naturally slows down as it narrows in on the target.
+
+The exact same pattern applies to the DFS maze generation, where we yield based on the `stack.size()`.
+
+## Why This is Elegant
+
+1. **No Multithreading Required**: We avoid mutexes, race conditions, and thread management entirely. The algorithm remains strictly synchronous and easy to debug.
+2. **Responsive UI**: Because we regularly call `game->step()`, the user can press a key to halt the `busy` flag, instantly pausing the visualization mid-execution.
+3. **Organic Pacing**: Tying the throttle reset to the queue/stack size naturally creates a "fast start, slow finish" visual rhythm that is highly pleasing to watch.
+
+## The Takeaway
+
+You don't need a complex async architecture to build beautiful algorithm visualizations. Sometimes, a simple integer counter and a willingness to yield control back to the main game loop is all you need to turn a blocking computation into a captivating visual experience.
+
+---
+*Check out the full source code for this SDL3 implementation in my [GitHub repository](#).*

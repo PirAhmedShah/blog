@@ -1,0 +1,121 @@
+---
+title: "Deep Dive: Bitmask Auto-Tiling in 2D Games"
+description: "How to build a seamless 2D terrain generation system using 4-bit bitmasking and neighbor state evaluation in C++ and SDL3."
+date: "2026-03-28"
+author: "Pir Ahmed Shah"
+tags:
+     - project
+     - performance
+     - cpp
+     - sdl3
+     - tooling
+---
+
+# Deep Dive: Bitmask Auto-Tiling in 2D Games
+
+If you have ever built a 2D grid-based game or a procedural map generator, you know the pain of manual tile placement. Placing a "grass" tile next to a "dirt" tile usually results in a harsh, unnatural-looking boundary. 
+
+The standard solution is **auto-tiling**: using a rich tileset with pre-drawn transitions (corners, edges, and centers) and letting the code pick the right sprite based on its neighbors. 
+
+While building a maze and terrain generator in C++ with SDL3, I implemented a **4-way bitmask auto-tiling system**. It turned a messy web of `if/else` conditions into a clean, $O(1)$ lookup operation. Here is how it works and why it is the right tool for the job.
+
+## The Problem with Naive Approaches
+
+A naive auto-tiler checks the state of the Top, Right, Bottom, and Left neighbors for every single tile. 
+
+```cpp
+// The naive, messy way
+if (top == GRASS && right == GRASS && bottom == DIRT && left == GRASS) {
+    tile.texture = BOTTOM_EDGE_TEXTURE;
+} else if (top == GRASS && right == DIRT && bottom == GRASS && left == GRASS) {
+    tile.texture = RIGHT_EDGE_TEXTURE;
+}
+// ... multiply this by 16+ combinations
+```
+
+This approach is brittle. It scales terribly if you add diagonal neighbors (8-way tiling), and it makes the codebase a nightmare to maintain. There has to be a more mathematical way to represent these states.
+
+## The Solution: 4-Way Bitmasking
+
+Instead of explicit conditionals, we can represent the presence of a matching neighbor as a single bit. 
+
+For a 4-way system, we assign a bit to each cardinal direction:
+- **Left**:   `1 << 0` (Binary `0001`, Decimal `1`)
+- **Bottom**: `1 << 1` (Binary `0010`, Decimal `2`)
+- **Right**:  `1 << 2` (Binary `0100`, Decimal `4`)
+- **Top**:    `1 << 3` (Binary `1000`, Decimal `8`)
+
+By evaluating the four neighbors and using the bitwise OR operator (`|`), we generate a unique integer between `0` and `15`. 
+
+2^4 = 16
+
+
+This integer directly maps to an index in a pre-defined lookup table (array) that holds the correct texture ID and rotation for that specific configuration.
+
+## The Implementation (C++ / SDL3)
+
+Here is the core logic I used in my SDL3 renderer. It runs once per tile whenever the map updates, making it highly predictable and cache-friendly.
+
+```cpp
+// A simple struct to hold the resolved tile data
+struct TileInfo {
+    uint8_t textureIndex;
+    uint8_t rotation; // 0, 1, 2, 3 (multiplied by 90 degrees)
+};
+
+// The lookup table: 16 entries mapping bitmask to texture/rotation
+// Index 0 = isolated, 15 = fully surrounded, etc.
+static constexpr TileInfo tileMap[16] = {
+    {0, 0}, {1, 3}, {1, 2}, {3, 2}, // 0-3
+    {1, 1}, {2, 1}, {3, 1}, {4, 0}, // 4-7
+    {1, 0}, {3, 3}, {2, 0}, {4, 1}, // 8-11
+    {3, 0}, {4, 2}, {4, 3}, {5, 0}  // 12-15
+};
+
+void Maze::setTileInfo(int cX, int cY) {
+    uint8_t mask = 0;
+    Cell& cell = cells[cY][cX];
+    ENUM_CELL_STATE state = cell.state;
+
+    // Check Top neighbor
+    if (isValidCoordinates(cX, cY - 1) && cells[cY - 1][cX].state == state) {
+        mask |= (1 << 3);
+    }
+    // Check Right neighbor
+    if (isValidCoordinates(cX + 1, cY) && cells[cY][cX + 1].state == state) {
+        mask |= (1 << 2);
+    }
+    // Check Bottom neighbor
+    if (isValidCoordinates(cX, cY + 1) && cells[cY + 1][cX].state == state) {
+        mask |= (1 << 1);
+    }
+    // Check Left neighbor
+    if (isValidCoordinates(cX - 1, cY) && cells[cY][cX - 1].state == state) {
+        mask |= (1 << 0);
+    }
+
+    // O(1) Lookup
+    cell.tile = tileMap[mask];
+    
+    // Offset texture index based on tile type (e.g., wall vs. grass)
+    cell.tile.textureIndex += state * 6; 
+    cell.needsUpdate = false;
+}
+```
+
+### Why This is Elegant
+1. **No Branching**: The bitwise operations and array lookup completely eliminate conditional branching, which is great for CPU branch prediction.
+2. **Data-Oriented**: The `tileMap` is `constexpr`, meaning it is evaluated at compile time and sits in read-only memory.
+3. **Extensible**: If I want to add a new tile type, I just append to the texture atlas and adjust the `state * 6` offset. The logic remains untouched.
+
+## What I Took Away
+
+Bitmasking is one of those concepts that feels like "magic" until you write it out on paper. Drawing a 4x4 grid and manually calculating the binary values for each of the 16 states helped me build the `tileMap` array without guessing. 
+
+It is a perfect example of the **KISS** (Keep It Simple, Stupid) principle. By leaning on fundamental computer science concepts (binary representation and array indexing), I replaced dozens of lines of fragile conditional logic with a few lines of robust, high-performance code.
+
+## Next Steps
+
+While 4-way bitmasking is perfect for top-down grid games, it can produce visually repetitive patterns. My next step is to experiment with **Wang Tiles** or **8-way bitmasking** (which evaluates diagonals, resulting in 256 combinations) to create more organic, less grid-like terrain transitions. 
+
+For now, though, 16 states are more than enough to make my maze generator look polished.

@@ -1,0 +1,101 @@
+---
+title: "Dynamic Lerp Camera & Viewport Culling in 2D Engines"
+description: "How to achieve silky-smooth camera tracking and optimal rendering performance in large 2D grids using dynamic interpolation and spatial culling."
+date: "2026-03-28"
+author: "Pir Ahmed Shah"
+tags:
+  - cpp
+  - sdl3
+  - performance
+  - graphics
+---
+
+# Dynamic Lerp Camera & Viewport Culling in 2D Engines
+
+When building a 2D grid-based game or simulation, two challenges inevitably arise: keeping the camera movement feeling "juicy" and responsive, and preventing the renderer from choking on thousands of off-screen tiles. 
+
+While building my SDL3 maze and terrain generator, I implemented a **Dynamic Lerp Camera** paired with strict **Viewport Culling**. The result is a system that feels incredibly polished while maintaining a near-zero rendering overhead, regardless of the map size.
+
+## The Problem: Robotic Cameras and Wasted Draw Calls
+
+A naive camera simply snaps its position to the player's coordinates every frame. This feels robotic and can induce motion sickness. Adding a standard Linear Interpolation (Lerp) smooths it out, but a fixed interpolation factor creates a new problem: 
+- When **zoomed in**, the camera feels sluggish and laggy.
+- When **zoomed out**, the camera snaps too aggressively, defeating the purpose of smoothing.
+
+Simultaneously, iterating over a 1000x1000 grid to draw tiles is a massive waste of GPU/CPU cycles when the viewport only displays a 40x30 subsection of it.
+
+## The Solution: Dynamic Lerp Factor
+
+Instead of a hardcoded smoothing value, the interpolation factor is dynamically calculated based on the current zoom level. 
+
+```cpp
+void Camera2D::update() {
+    float targetCenterX = target->x + target->w * 0.5f;
+    float targetCenterY = target->y + target->h * 0.5f;
+    
+    float viewWorldW = w / zoom;
+    float viewWorldH = h / zoom;
+    
+    float desiredX = targetCenterX - viewWorldW * 0.5f;
+    float desiredY = targetCenterY - viewWorldH * 0.5f;
+
+    // Dynamically sets lerping factor
+    const float lerpFactor = (zoom / 50.0f) * SMOOTHNESS;
+    
+    x += lerpFactor * (desiredX - x);
+    y += lerpFactor * (desiredY - y);
+    zoom += SMOOTHNESS * (toZoom - zoom);
+}
+```
+
+**Why this works:** By dividing the `zoom` value by a constant (e.g., `50.0f`), we create a proportional relationship. 
+- When **zoomed out** (small `zoom` value), `lerpFactor` is small, resulting in a slower, smoother glide that prevents disorientation.
+- When **zoomed in** (large `zoom` value), `lerpFactor` increases, making the camera snappy and responsive to quick player movements.
+
+## The Solution: Viewport Culling
+
+Rendering every tile in the `cells` matrix is unnecessary. We can calculate exactly which tiles intersect with the camera's world-space bounding box and *only* render those.
+
+```cpp
+void Maze::render() {
+    float viewX = cam.x;
+    float viewY = cam.y;
+    float viewW = cam.w / cam.zoom;
+    float viewH = cam.h / cam.zoom;
+
+    // Calculate the exact grid boundaries visible on screen
+    int startCellX = std::max(0, static_cast<int>(viewX / size));
+    int startCellY = std::max(0, static_cast<int>(viewY / size));
+    int endCellX = std::min(cellsX, static_cast<int>(std::ceil((viewX + viewW) / size)));
+    int endCellY = std::min(cellsY, static_cast<int>(std::ceil((viewY + viewH) / size)));
+
+    SDL_FRect worldRect{0.0f, 0.0f, static_cast<float>(size), static_cast<float>(size)};
+
+    // Only iterate over the visible sub-grid
+    for (int j = startCellY; j < endCellY; ++j) {
+        for (int i = startCellX; i < endCellX; ++i) {
+            if (cells[j][i].needsUpdate) {
+                setTileInfo(i, j);
+            }
+            worldRect.x = i * size;
+            worldRect.y = j * size;
+            
+            TileInfo &tileInfo = cells[j][i].tile;
+            SDL_FRect screenRect = cam.worldToScreen(worldRect);
+            
+            SDL_RenderTextureRotated(renderer, cellTextures[tileInfo.textureIndex], 
+                                     NULL, &screenRect, tileInfo.rotation * 90, NULL, SDL_FLIP_NONE);
+        }
+    }
+}
+```
+
+By clamping the start and end indices using `std::max` and `std::min`, we completely eliminate out-of-bounds array access while guaranteeing we only process the tiles that will actually be pushed to the screen. 
+
+## The Takeaway
+
+Performance and polish are not mutually exclusive. By coupling a mathematically scaled interpolation factor with strict spatial culling, you can render massive, seamless 2D worlds at a locked 60+ FPS without sacrificing that "premium" game feel.
+
+---
+*Check out the full source code for this SDL3 implementation in my [GitHub repository](#).*
+

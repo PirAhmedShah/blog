@@ -1,0 +1,129 @@
+---
+title: "Optimizing Physics Engines & Creative Coding in the Browser"
+description: "How to escape the O(N²) trap using Spatial Hashing and build complex rigid-body mechanics with Planck.js and p5.js."
+date: "2026-03-31"
+author: "Pir Ahmed Shah"
+tags:
+  - javascript
+  - p5js
+  - planckjs
+  - performance
+  - physics
+  - creative-coding
+---
+
+# Optimizing Physics Engines & Creative Coding in the Browser
+
+When building interactive simulations in the browser, you quickly hit a wall: the JavaScript engine is fast, but physics math is *expensive*. Whether you're simulating thousands of electrostatic particles or building a multi-jointed physics tank, naive implementations will tank your framerate.
+
+In this post, I'll break down two major technical hurdles I tackled in my recent simulations: optimizing an N-Body particle system using **Spatial Hashing**, and building a complex, multi-jointed rigid body tank using **Planck.js** and **p5.js**.
+
+---
+
+## 1. Escaping the <code>O(N<sup>2</sup>)</code> Trap: Spatial Hashing
+
+In my **Charges** simulation, I needed to calculate the Coulomb force between hundreds of interacting protons and electrons. 
+
+### The Problem
+The naive approach requires checking every particle against every other particle. For <code>N</code> particles, this results in <code>N × (N - 1)</code> calculations per frame. If you have 1,000 particles, that's nearly 1 million force calculations every single frame. Your browser will choke, and your FPS will drop to single digits.
+
+### The Solution: Spatial Hashing
+Instead of checking the entire grid, we divide the canvas into a grid of cells (e.g., <code>CELL_SIZE = 100px</code>). Each particle is assigned to a cell based on its coordinates. Because electrostatic forces drop off rapidly over distance, a particle only needs to interact with other particles in its **own cell and the 8 immediately adjacent cells**.
+
+Here is how I implemented the cell indexing and neighbor lookup:
+
+```javascript
+// 1. Calculate the cell index for the particle
+this.cX = ~~(this.x / CELL_SIZE);
+this.cY = ~~(this.y / CELL_SIZE);
+this.cell = this.cX + " " + this.cY;
+
+// 2. Pre-calculate the 9 neighboring cell keys
+this.selfAndNeighborCellsName = [
+  this.cell,
+  this.cX + 1 + " " + (this.cY - 1),
+  this.cX - 1 + " " + (this.cY - 1),
+  this.cX     + " " + (this.cY - 1),
+  this.cX + 1 + " " + this.cY,
+  this.cX - 1 + " " + this.cY,
+  this.cX + 1 + " " + (this.cY + 1),
+  this.cX - 1 + " " + (this.cY + 1),
+  this.cX     + " " + (this.cY + 1)
+];
+```
+
+When applying forces, we simply iterate through this 9-cell array and check the <code>COLLISION_GRID</code> dictionary:
+
+```javascript
+for (let i = 0; i < this.selfAndNeighborCellsName.length; i++) {
+  let particlesInCell = COLLISION_GRID[this.selfAndNeighborCellsName[i]];
+  if (!particlesInCell) continue;
+  
+  for (let particle of particlesInCell) {
+    // Calculate and apply Coulomb force...
+  }
+}
+```
+
+**The Result:** The time complexity drops from <code>O(N<sup>2</sup>)</code> to near <code>O(N)</code>. The simulation smoothly handles thousands of particles at 60 FPS without breaking a sweat.
+
+---
+
+## 2. Complex Rigid Body Dynamics with Planck.js
+
+While particle systems are about *optimizing calculations*, rigid body simulations are about *accurate physical constraints*. For my **Tank Simulator**, I used `p5.play` (which wraps the robust `planck.js` physics engine) to build a fully functional, multi-jointed vehicle.
+
+### The Joint System
+A tank isn't just a single box. It's a chassis, a rotating turret, and a track system. I achieved this by chaining different physics joints:
+
+1. **<code>WheelJoint</code>**: Used for the independent suspension. I tuned the <code>springiness</code> and <code>damping</code> to give the wheels realistic bounce over the terrain.
+2. **<code>DistanceJoint</code>**: Used between adjacent wheels to simulate track tension and the conveyer effect, keeping the wheels synchronized.
+3. **<code>HingeJoint</code>**: Used to attach the turret to the chassis, allowing it to rotate independently of the tank's movement.
+
+### Dynamic Torque & Gear Ratios
+To make the tank feel heavy and mechanical, I implemented a manual transmission system with an array of gear ratios:
+
+```javascript
+gears: [
+  { number: "N", ratio: 0 }, 
+  { number: "I", ratio: 0.125 }, 
+  { number: "II", ratio: 0.25 }, 
+  // ... up to "VII", ratio: 2
+]
+```
+
+When the player shifts gears, the engine's <code>ratio</code> updates. Crucially, the maximum power applied to the wheel axles is dynamically scaled inversely to the gear ratio:
+
+```javascript
+switchGear: (direction) => {
+  this.base.engine.gear = constrain(this.base.engine.gear + direction, 0, this.gears.length - 1);
+  this.base.engine.ratio = this.gears[this.base.engine.gear].ratio;
+  
+  // Lower gears = more torque (maxPower)
+  this.axels.forEach(axel => {
+    axel.maxPower = 0.3 / this.base.engine.ratio; 
+  });
+}
+```
+
+### Newton's Third Law: Physical Recoil
+When the tank fires, the projectile gets an <code>applyForce()</code> in the direction of the barrel. To simulate realistic recoil, I applied an equal and opposite force to the turret itself:
+
+```javascript
+// Offset the bearing by Math.PI to push backwards
+this.turret.bearing = this.turret.rotation + Math.PI;
+this.turret.applyForce(this.turret.projectileSpeed);
+```
+
+Because the turret is attached to the chassis via a <code>HingeJoint</code>, this backward force physically pushes the entire tank backward, requiring the player to use the engine to maintain their position.
+
+---
+
+## The Takeaway
+
+Creative coding in the browser requires a dual mindset. You need **algorithmic optimization** (like Spatial Hashing) to handle massive datasets efficiently, and **physics constraints** (like Joints and Torque scaling) to make those datasets behave like the real world. 
+
+By understanding the underlying math and leveraging the right tools, you can push the limits of what's possible in a standard web browser.
+
+---
+*Check out the source code for the [Charges Simulation](#) and the [Tank Simulator](#) on my GitHub.*
