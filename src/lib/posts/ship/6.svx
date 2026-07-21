@@ -1,0 +1,77 @@
+---
+title: "Securing the Marketplace: Automated Backdoor Scanning for Roblox Assets"
+description: "How RoDevsy intercepts and scans uploaded Luau scripts and models for malicious backdoors before they reach the marketplace, protecting the community from supply-chain attacks."
+date: "2026-04-09"
+author: "Pir Ahmed Shah"
+tags:
+- security
+- project
+- architecture
+- learning
+---
+# Securing the Marketplace: Automated Backdoor Scanning for Roblox Assets
+The Roblox ecosystem has a massive supply-chain problem. It is incredibly common for developers to download "free" models or scripts from the community, only to find hidden backdoors that give the original creator remote access to their game server. 
+
+When building the RoDevsy Asset Marketplace, security couldn't be an afterthought. If we allow users to sell `.rbxm` (models) and `.lua`/`.luau` scripts, we are inherently trusting that the files aren't weaponized. 
+
+Here is how RoDevsy handles automated asset scanning to protect the community.
+
+## The Threat Model
+Most Roblox backdoors aren't sophisticated zero-days. They rely on a few common Luau functions to execute remote code or hook into the game's environment:
+- `getfenv()` / `setfenv()`: Manipulating function environments to hide code.
+- `hookfunction()`: Overwriting core game functions (like `FireServer` or `InvokeServer`) to intercept data.
+- `loadstring()`: Executing dynamically downloaded strings as code.
+- `require()`: Pointing to external, malicious ModuleScripts hosted on the Roblox platform.
+
+While a determined attacker can obfuscate their code, the vast majority of script-kiddie backdoors rely on these raw functions.
+
+## The Quarantine Architecture
+When a developer uploads an asset to RoDevsy, it doesn't go straight to the public marketplace. It goes into a **Quarantine State**.
+
+1. **Upload**: The file is stored in an isolated S3 bucket (or local quarantine directory).
+2. **Scan**: A background worker pulls the file, extracts the Luau source code (if it's a model, we parse the XML and extract the Script instances).
+3. **Analyze**: The code is run through a static analysis pipeline.
+4. **Decision**: 
+   - **Clean**: Moved to the public marketplace bucket.
+   - **Suspicious**: Flagged for manual admin review.
+   - **Malicious**: Deleted, and the uploader's account is flagged for review.
+
+## The Scanning Pipeline
+For the initial pass, we use a combination of AST (Abstract Syntax Tree) parsing and targeted Regex. AST parsing is more robust against simple obfuscation (like renaming `loadstring` to `_G["load".."string"]`), but Regex is faster for catching the obvious, unobfuscated threats.
+
+```typescript
+// asset-scanner.service.ts
+const MALICIOUS_PATTERNS = [
+  /getfenv\s*\(/i,
+  /setfenv\s*\(/i,
+  /hookfunction\s*\(/i,
+  /loadstring\s*\(/i,
+  /require\s*\(\s*[0-9]{6,}/i, // Requiring external asset IDs
+  /game:HttpGet\s*\(/i,       // Fetching remote payloads
+];
+
+async function scanLuauSource(sourceCode: string): Promise<ScanResult> {
+  const matches = [];
+  
+  for (const pattern of MALICIOUS_PATTERNS) {
+    const match = sourceCode.match(pattern);
+    if (match) {
+      matches.push({ pattern: pattern.source, snippet: match[0] });
+    }
+  }
+
+  if (matches.length > 0) {
+    return { status: 'SUSPICIOUS', matches };
+  }
+
+  return { status: 'CLEAN', matches: [] };
+}
+```
+
+## Why Not Just Use Antivirus?
+Traditional antivirus relies on signature databases of known malware files. But a Roblox backdoor isn't a standalone executable; it's a snippet of text inside an XML file. Furthermore, a backdoor that is perfectly safe today can be slightly mutated tomorrow to bypass a hash-based signature. 
+
+Static analysis of the *behavior* (the functions being called) is the only viable approach for code-based assets.
+
+## The Takeaway
+Security in a marketplace isn't just about securing the payment gateway; it's about securing the product itself. By treating every uploaded file as hostile until proven otherwise, and enforcing a strict quarantine pipeline, RoDevsy ensures that developers can buy assets with confidence, knowing the platform is actively filtering out supply-chain attacks.

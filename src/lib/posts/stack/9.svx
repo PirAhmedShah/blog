@@ -1,0 +1,97 @@
+---
+title: "Integrating Roblox OAuth 2.0 for Platform Identity Verification"
+description: "A step-by-step guide to implementing Roblox OAuth 2.0 in NestJS, securing client secrets, and linking external game IDs to internal profiles to prevent throwaway scam accounts."
+date: "2026-04-08"
+author: "Pir Ahmed Shah"
+tags:
+- typescript
+- backend
+- security
+- api
+- project
+---
+# Integrating Roblox OAuth 2.0 for Platform Identity Verification
+One of the biggest problems with freelance platforms in the Roblox ecosystem is the "throwaway account" scam. A scammer creates a fresh Discord or forum account, takes a commission, delivers nothing, and deletes the account. There is zero accountability.
+
+For RoDevsy, identity verification is a core pillar. We mandate that every user links their actual Roblox account via OAuth 2.0. This ties their platform reputation to their real Roblox identity, making scams significantly harder to execute.
+
+Here is how I implemented the Roblox OAuth 2.0 Authorization Code flow in NestJS.
+
+## The OAuth Flow
+1. **Redirect**: The client clicks "Link Roblox Account" and is redirected to Roblox's authorization server.
+2. **Consent**: The user logs into Roblox and grants RoDevsy permission to read their basic profile.
+3. **Callback**: Roblox redirects back to our API with an authorization `code`.
+4. **Exchange**: Our backend exchanges the `code` for an `access_token`.
+5. **Fetch & Link**: We use the `access_token` to fetch the user's Roblox ID and username, and link it to their internal RoDevsy profile.
+
+## Securing the Client Secret
+Roblox OAuth requires a `client_id` and a `client_secret`. The secret is essentially a password for your application. **Never hardcode it, and never expose it to the frontend.**
+
+In RoDevsy's Docker Compose setup, the secret is injected via Docker Secrets, ensuring it's never written to the image layer or environment variables in plain text.
+
+```yaml
+# compose.yaml snippet
+services:
+  api:
+    secrets:
+      - rbx_oauth
+    environment:
+      - RBX_OAUTH_SECRET_FILE=/run/secrets/rbx_oauth
+```
+
+## The NestJS Implementation
+The callback endpoint is where the magic happens. It needs to handle the token exchange securely and map the external Roblox ID to our internal user.
+
+```typescript
+// auth.controller.ts
+@Controller('auth')
+export class AuthController {
+  @Get('roblox/callback')
+  async robloxCallback(@Query('code') code: string, @CurrentUser() user: User) {
+    // 1. Exchange code for access token
+    const tokenResponse = await this.httpService.axiosRef.post(
+      'https://apis.roblox.com/oauth/v1/token',
+      new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: process.env.RBX_REDIRECT_URI,
+        client_id: process.env.RBX_CLIENT_ID,
+        client_secret: fs.readFileSync(process.env.RBX_OAUTH_SECRET_FILE, 'utf8').trim()
+      }).toString(),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+
+    // 2. Fetch the authenticated user's Roblox info
+    const userInfoResponse = await this.httpService.axiosRef.get(
+      'https://apis.roblox.com/oauth/v1/userinfo',
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+    const robloxId = userInfoResponse.data.sub; // The unique Roblox User ID
+    const robloxUsername = userInfoResponse.data.preferred_username;
+
+    // 3. Link to internal profile
+    // We use a unique constraint on roblox_id to prevent one Roblox account 
+    // from linking to multiple RoDevsy accounts.
+    await this.userService.linkRobloxIdentity(user.id, robloxId, robloxUsername);
+
+    return { success: true, message: 'Roblox account linked successfully' };
+  }
+}
+```
+
+## The Database Constraint
+To prevent a single Roblox account from creating multiple RoDevsy accounts to bypass bans or manipulate ratings, the `roblox_id` column must have a unique, partial index.
+
+```sql
+CREATE UNIQUE INDEX idx_users_roblox_id 
+ON users(roblox_id) 
+WHERE roblox_id IS NOT NULL;
+```
+
+This allows users to exist without a linked Roblox account initially (during email signup), but the moment they link one, that Roblox ID is permanently burned to that specific internal user.
+
+## The Takeaway
+OAuth is often treated as just a "Login with X" convenience feature, but in a trust-based marketplace, it's a critical security boundary. By forcing identity linkage and enforcing strict database constraints on the external IDs, you shift the platform from "anonymous trust" to "verified accountability."

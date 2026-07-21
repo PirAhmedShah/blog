@@ -1,0 +1,76 @@
+---
+title: "Case Study: Designing RoDevsy's Escrow State Machine & Atomic Ledger"
+description: "How to model a multi-party escrow system in PostgreSQL, handling atomic fund locking, state transitions, and dispute resolution without race conditions."
+date: "2026-04-06"
+author: "Pir Ahmed Shah"
+tags:
+- architecture
+- project
+- typescript
+- backend
+---
+# Case Study: Designing RoDevsy's Escrow State Machine & Atomic Ledger
+When you hire a Roblox developer on Discord, escrow is just "trust me bro." You send half the payment upfront and hope they don't ghost you. For RoDevsy, that wasn't going to cut it. If we are handling real money (pegged 1:1 to USDT via internal Credits), the escrow system needs to be deterministic, code-enforced, and completely immune to race conditions.
+
+This is a deep dive into how RoDevsy's escrow state machine and atomic ledger work under the hood using NestJS and PostgreSQL.
+
+## The State Machine
+A project contract isn't just "paid" or "unpaid." It's a lifecycle that dictates what actions are allowed and where the funds currently live. I modeled this as a strict finite state machine:
+
+1. **`DRAFT`** - Terms are agreed upon, but no funds are locked.
+2. **`FUNDED`** - Client's available balance is atomically moved to the contract's frozen balance.
+3. **`IN_PROGRESS`** - Developer is actively working.
+4. **`REVIEW`** - Deliverables submitted. The 7-day auto-approval timer starts.
+5. **`COMPLETED`** - Funds are released to the developer's available balance.
+6. **`DISPUTED`** - Freezes the auto-approval timer. Funds remain locked until admin mediation resolves it.
+
+The golden rule: **The database enforces the transitions.** You cannot move a contract from `COMPLETED` back to `IN_PROGRESS`, and you cannot release funds if the state is `DISPUTED`.
+
+## Atomic Fund Locking
+The most dangerous moment in an escrow system is the transition from `DRAFT` to `FUNDED`. If the client has 1,000 Credits and tries to fund two 800 Credit contracts simultaneously, a naive implementation might allow both, resulting in a negative balance or a double-spend.
+
+To prevent this, RoDevsy uses PostgreSQL's `SELECT ... FOR UPDATE` to lock the wallet rows during the transaction.
+
+```typescript
+// escrow.service.ts
+async fundContract(clientId: string, contractId: string, amount: number) {
+  return this.dataSource.transaction(async (manager) => {
+    // 1. Lock the client's wallet row to prevent concurrent modifications
+    const wallet = await manager.query(
+      `SELECT * FROM wallets WHERE user_id = $1 FOR UPDATE`,
+      [clientId]
+    );
+
+    if (wallet.available_balance < amount) {
+      throw new BadRequestException('Insufficient funds');
+    }
+
+    // 2. Atomically decrement available and increment frozen
+    await manager.query(
+      `UPDATE wallets 
+       SET available_balance = available_balance - $1,
+           frozen_balance = frozen_balance + $1
+       WHERE user_id = $2`,
+      [amount, clientId]
+    );
+
+    // 3. Transition the contract state
+    await manager.query(
+      `UPDATE contracts SET status = 'FUNDED', funded_at = NOW() WHERE id = $1`,
+      [contractId]
+    );
+  });
+}
+```
+
+By wrapping this in a `SERIALIZABLE` or strictly locked transaction, the database guarantees that no two requests can read and modify the same wallet balance concurrently. If a second request comes in while the first is processing, it blocks until the lock is released, at which point it will see the updated balance and correctly throw an "Insufficient funds" error.
+
+## Dispute Resolution & The Auto-Approval Timer
+When a developer submits work, the contract moves to `REVIEW`. The client has 7 days to approve it. If they do nothing, the system automatically releases the funds. 
+
+But what if the client claims the work is garbage and opens a dispute? 
+
+The dispute trigger must instantly freeze the auto-approval timer and lock the funds. The funds cannot be released to the developer, nor can they be refunded to the client, until an admin explicitly resolves the dispute. This requires a separate `disputes` table that acts as a foreign key constraint on the contract's state transitions. If an active dispute exists, the state machine literally cannot execute the `COMPLETED` or `REFUNDED` queries.
+
+## The Takeaway
+Building an escrow system isn't just about moving numbers between columns. It's about modeling real-world legal contracts into database constraints. By enforcing state transitions at the database level and using row-level locking for financial movements, RoDevsy ensures that the code is the only lawyer you need.

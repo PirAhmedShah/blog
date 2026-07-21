@@ -1,0 +1,66 @@
+---
+title: "TIL: Why Financial Ledgers Must Be Append-Only"
+description: "A reflection on building RoDevsy's credit system and why UPDATE statements are the enemy of financial integrity."
+date: "2026-04-10"
+author: "Pir Ahmed Shah"
+tags:
+- til
+- learning
+- project
+- architecture
+---
+# TIL: Why Financial Ledgers Must Be Append-Only
+When I first started designing the credit system for RoDevsy, my initial thought was simple: 
+
+```sql
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  balance INT NOT NULL DEFAULT 0
+);
+
+-- To process a withdrawal:
+UPDATE users SET balance = balance - 100 WHERE id = '...';
+```
+
+It works. It's fast. It's what every basic tutorial teaches you. 
+
+It is also a complete nightmare for financial integrity. Here is what I learned about why `UPDATE` is the enemy of a ledger.
+
+## The Audit Problem
+If a user's balance is wrong, how do you figure out why? With an `UPDATE` statement, the history is destroyed. You overwrite the old state with the new state. If a bug causes a double-spend, or an admin manually adjusts a balance, there is no paper trail. You can't prove what happened, when it happened, or who authorized it.
+
+In a real financial system, **immutability is the only way to sleep at night.**
+
+## The Append-Only Solution
+Instead of storing the *current balance* and updating it, you store every single *movement of funds* and calculate the balance as a sum.
+
+```sql
+CREATE TABLE transaction_ledger (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL,
+  amount INT NOT NULL, -- Positive for credit, negative for debit
+  type TEXT NOT NULL,  -- 'DEPOSIT', 'WITHDRAWAL', 'ESCROW_LOCK', 'ESCROW_RELEASE'
+  idempotency_key UUID UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+Notice there is no `UPDATE` operation here. The table is strictly `INSERT`-only. 
+
+To find a user's current balance, you query the ledger:
+```sql
+SELECT SUM(amount) FROM transaction_ledger WHERE user_id = $1;
+```
+
+## Why This Matters
+1. **Perfect Audit Trail**: Every single cent that enters or leaves the platform is recorded. If a user claims they didn't authorize a withdrawal, you can trace the exact `idempotency_key` and timestamp back to the API request.
+2. **Crash Recovery**: If the server crashes halfway through a transaction, the database rollback ensures the ledger entry is never partially written. 
+3. **Dispute Resolution**: If an escrow contract goes into dispute, admins can look at the exact sequence of `ESCROW_LOCK` and `ESCROW_RELEASE` events to understand the state of the funds without guessing.
+
+## Performance Considerations
+"Isn't `SUM()` slow on millions of rows?" 
+
+Yes, if you do it naively. But the solution isn't to go back to `UPDATE`. The solution is to use **Materialized Views** or database triggers to maintain a cached `current_balance` table that is updated automatically whenever a new row is inserted into the ledger. You get the performance of an `UPDATE` with the safety of an append-only log.
+
+## The Takeaway
+Treat your database as an event log, not a state store. When you are handling other people's money, the ability to reconstruct the past is just as important as the ability to process the present. Never use `UPDATE` on a balance column again.

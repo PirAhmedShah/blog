@@ -1,0 +1,43 @@
+---
+title: "Architecting a Local Chess Engine Bridge: Manifest V3 & WebSockets"
+description: "Why running Stockfish NNUE inside a Chrome Extension is a nightmare, and how I built a hybrid architecture using a local Node.js WebSocket server to bypass Manifest V3 limitations."
+date: "2026-07-21"
+author: "Pir Ahmed Shah"
+tags:
+- architecture
+- project
+- javascript
+- websockets
+---
+# Architecting a Local Chess Engine Bridge: Manifest V3 & WebSockets
+Building a chess assistant for Chess.com sounds straightforward until you hit the reality of modern browser extension constraints. My project, ChessX, aims to provide real-time engine analysis overlayed on the board. But running a modern chess engine like Stockfish 16 (with NNUE neural networks) directly inside a Chrome Extension is a recipe for disaster.
+
+## The Manifest V3 Problem
+With the shift from Manifest V2 to V3, Chrome replaced persistent background pages with Service Workers. Service Workers are ephemeral; they spin up to handle an event and go to sleep shortly after. 
+
+If you try to load a heavy WebAssembly module like Stockfish NNUE inside a Service Worker, you run into severe issues:
+1. **Memory Limits**: Service workers have strict memory ceilings. Loading neural network weights can trigger OOM (Out of Memory) crashes.
+2. **Thread Blocking**: Stockfish relies on multi-threading for deep searches. Service workers do not support the same threading models as standard web pages or Node.js environments.
+3. **Timeouts**: If the engine takes 5 seconds to calculate a deep line, the service worker might be terminated by the browser before it can send the result back to the content script.
+
+## The Hybrid Architecture
+To bypass the browser sandbox entirely for the heavy lifting, I split the application into two distinct parts:
+1. **The Chrome Extension (The Eyes and Hands)**: Handles DOM scraping, user input, and UI rendering (highlighting squares).
+2. **The Local Node.js Server (The Brain)**: Runs Stockfish natively (or via Node WASM) with full access to system RAM and CPU threads.
+
+The bridge between them is a local WebSocket server running on `ws://localhost:443/`.
+
+## The Data Flow
+When it's the player's turn, the pipeline looks like this:
+1. The **Content Script** uses a `MutationObserver` to detect the opponent's move, reconstructs the full PGN (Portable Game Notation) from the DOM, and sends it to the **Background Script**.
+2. The **Background Script** maintains a persistent WebSocket connection to the local Node server and forwards the PGN payload.
+3. The **Node Server** receives the PGN, uses `chess.js` to convert it into a FEN string, and feeds it to Stockfish via the UCI (Universal Chess Interface) protocol.
+4. Stockfish calculates the best move and streams the result back to Node.
+5. Node sends the UCI move (e.g., `e2e4`) back over the WebSocket to the Extension.
+6. The **Content Script** translates the UCI coordinates into Chess.com's SVG grid and highlights the source and target squares.
+
+## Handling Connection State
+Because the local server is a separate process, the extension needs to know if the "brain" is actually running. The background script listens to the WebSocket `onopen` and `onclose` events to dynamically swap the extension icon between an "Online" and "Offline" state. If the socket drops, the service worker triggers a `chrome.runtime.reload()` to attempt a clean reconnection cycle.
+
+## The Takeaway
+Sometimes the best way to handle browser limitations is to step outside the browser entirely. By offloading the CPU-intensive engine evaluation to a local Node process, ChessX avoids the Manifest V3 Service Worker guillotine while keeping the user experience seamlessly integrated into the browser tab.

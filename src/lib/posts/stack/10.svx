@@ -1,0 +1,85 @@
+---
+title: "Scraping SPAs: MutationObservers and PGN Reconstruction on Chess.com"
+description: "How to reliably extract game state from a complex, obfuscated Single Page Application using MutationObservers, and bridge the gap between Algebraic and UCI notation."
+date: "2026-07-21"
+author: "Pir Ahmed Shah"
+tags:
+- javascript
+- dom
+- architecture
+- frontend
+---
+# Scraping SPAs: MutationObservers and PGN Reconstruction on Chess.com
+Chess.com is a massive, complex Single Page Application built with modern web frameworks. The DOM is heavily obfuscated, class names change, and the board state isn't exposed via any public API. If you want to build an overlay or analysis tool, you have to scrape the DOM. 
+
+But you can't just read the DOM once. A chess game is a stream of events. You need to know *exactly* when a move is made, what the move was, and reconstruct the entire game history to feed into an engine. Here is how I solved this for ChessX.
+
+## The MutationObserver Pipeline
+Polling the DOM with `setInterval` is inefficient and prone to race conditions. Instead, I used the `MutationObserver` API to watch the specific DOM node that Chess.com uses to render the move list (`wc-vertical-move-list`).
+
+```javascript
+const config = { childList: true, subtree: true };
+const wcVerticalMoveList = document.querySelector("wc-vertical-move-list div");
+
+const observer = new MutationObserver((mutationList) => {
+  for (const mutation of mutationList) {
+    const newNode = mutation.addedNodes[0];
+    if (newNode && newNode.tagName === "DIV" && newNode.classList.contains("black-move")) {
+      // The opponent just moved. Trigger engine analysis.
+      const pgn = reconstructPGN();
+      requestBestMove(pgn);
+    }
+  }
+});
+
+observer.observe(wcVerticalMoveList, config);
+```
+
+By watching for added nodes that contain the `black-move` or `white-move` classes, the extension reacts instantly to board state changes without wasting CPU cycles.
+
+## Reconstructing the PGN
+Stockfish doesn't understand "the current board state" natively; it needs the history of moves to handle rules like threefold repetition and en passant. I had to write a parser that walks through the move list DOM nodes and stitches them into a standard PGN string.
+
+```javascript
+function getPGN() {
+  let PGN = "";
+  let list = wcVerticalMoveList.children;
+  for (let i = 0; i < list.length; i++) {
+    const div = list[i];
+    const moveList = div.querySelectorAll(":scope > .node");
+    PGN += `${div.getAttribute("data-whole-move-number")}. ${moveList[0].innerText} `;
+    if (moveList.length === 2) PGN += moveList[1].innerText + " ";
+  }
+  PGN += "*"; // Standard PGN termination for an ongoing game
+  return PGN;
+}
+```
+
+## The Notation Translation Problem
+Here is where things get tricky. Chess.com displays moves in **Standard Algebraic Notation (SAN)** (e.g., `Nf3`, `O-O`, `exd5`). But chess engines speak **UCI (Universal Chess Interface)** notation, which is strictly coordinate-based (e.g., `g1f3`, `e1g1`, `e4d5`).
+
+When the engine suggests a Principal Variation (PV) line, it returns UCI. If the opponent makes a move, I need to verify if they played the engine's predicted move. Comparing `Nf3` to `g1f3` directly will fail.
+
+I had to build a bridge function that handles edge cases, particularly castling, which is represented completely differently in both formats:
+
+```javascript
+const castlingMoves = {
+  "O-O": ["e1g1", "e8g8"],
+  "O-O-O": ["e1c1", "e8c8"],
+};
+
+function matchMoves(uciMove, standardMove) {
+  if (castlingMoves[standardMove]) {
+    return castlingMoves[standardMove].includes(uciMove);
+  }
+  // For standard moves, the UCI destination square (last 2 chars) 
+  // will match the destination square in the SAN string.
+  return standardMove.includes(uciMove.slice(-2));
+}
+```
+
+## Highlighting the Board
+Once the best move is returned from the local server, the extension needs to draw arrows or highlight squares on Chess.com's board. Chess.com uses a grid of `div` elements with classes like `square-11` through `square-88`. By mapping the UCI string (`e2e4`) to the grid coordinates, the extension injects custom CSS backgrounds to highlight the source (green) and target (red) squares.
+
+## The Takeaway
+Scraping modern SPAs requires moving away from static DOM reads and embracing event-driven observation. By combining `MutationObserver` for reactivity with robust notation-translation logic, you can reliably interface with black-box web applications and feed their state into external systems.
