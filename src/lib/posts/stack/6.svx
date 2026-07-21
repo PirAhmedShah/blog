@@ -1,0 +1,82 @@
+---
+title: "Hardening a Fresh VPS: UFW, SSH, and the Principle of Least Access"
+description: "A fresh Ubuntu VPS is wide open by default. A practical walkthrough of firewall rules, SSH hardening, and fail2ban to close the obvious holes before deploying anything to it."
+date: "2026-04-03"
+author: "Pir Ahmed Shah"
+tags:
+  - security
+  - tooling
+  - workflow
+---
+
+# Hardening a Fresh VPS: UFW, SSH, and the Principle of Least Access
+
+A newly provisioned Ubuntu VPS has every port a fresh install ships with, root login enabled over SSH, and password authentication turned on by default. None of that is unique to any one hosting provider - it's just how the base image ships, and it's the first thing that should change before anything else gets deployed.
+
+## Step 1: UFW - Deny by Default
+
+`ufw` (Uncomplicated Firewall) is a friendlier frontend over `iptables`. The starting posture should always be deny-everything, then explicitly allow only what's needed:
+
+```bash
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+sudo ufw allow OpenSSH    # port 22 - needed to keep managing the box
+sudo ufw allow 80/tcp     # http
+sudo ufw allow 443/tcp    # https
+
+sudo ufw enable
+sudo ufw status verbose
+```
+
+Allowing `OpenSSH` by name rather than hardcoding `22/tcp` matters if the SSH port ever changes later - the rule stays correct without editing it. Everything not explicitly allowed here - every other port a fresh install might have listening - is unreachable from outside, full stop.
+
+## Step 2: SSH Config Hardening
+
+The default `sshd_config` allows root to log in directly and allows password authentication, both of which are the first thing a brute-force scanner tries. A drop-in config file avoids editing the main file directly:
+
+```bash
+sudo tee /etc/ssh/sshd_config.d/99-hardening.conf << 'EOF'
+PermitRootLogin no
+PasswordAuthentication no
+X11Forwarding no
+MaxAuthTries 3
+EOF
+
+sudo systemctl restart sshd
+```
+
+- **`PermitRootLogin no`** - root can only be reached via `sudo` after logging in as a regular user, never directly.
+- **`PasswordAuthentication no`** - only key-based auth is accepted; a brute-forced or leaked password is useless without the matching private key.
+- **`MaxAuthTries 3`** - the connection is dropped after three failed attempts, rather than allowing unlimited retries per session.
+
+This step has a real failure mode: disabling password auth *before* confirming a key-based login works locks you out entirely. Always open a second terminal and confirm key auth works before closing the session you're hardening from.
+
+## Step 3: Fail2ban for the Attempts That Still Get Through
+
+UFW and SSH config handle the obvious cases; `fail2ban` handles the persistent ones - an IP that keeps trying despite `MaxAuthTries`, just across new connections instead of retrying within one.
+
+```bash
+sudo apt install fail2ban -y
+
+sudo tee /etc/fail2ban/jail.local << 'EOF'
+[sshd]
+enabled = true
+port = ssh
+maxretry = 3
+bantime = 3600
+findtime = 600
+EOF
+
+sudo systemctl restart fail2ban
+```
+
+An IP that fails 3 login attempts within a 10-minute window (`findtime`) gets banned for an hour (`bantime`) - automatically, via an iptables rule fail2ban inserts and removes on its own schedule.
+
+## Why This Order Matters
+
+UFW closes ports first, so anything not explicitly needed is unreachable regardless of what's misconfigured behind it. SSH hardening then narrows the one port that has to stay open. Fail2ban is the last layer, catching the attempts that get through the first two simply by being persistent rather than by exploiting a hole. Each layer assumes the previous one might eventually be misconfigured or bypassed, and doesn't rely on it.
+
+## The Takeaway
+
+None of these three steps are individually sophisticated - a firewall, a config file, and a ban script. What matters is doing all three before deploying anything, not after noticing suspicious auth log entries. A VPS that's had one weekend of internet exposure with default SSH settings has usually already been scanned by something.

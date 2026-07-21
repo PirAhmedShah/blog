@@ -1,0 +1,81 @@
+---
+title: "Case Study: Rodevsy's Session Architecture - JWT + Redis Whitelisting"
+description: "How Rodevsy handles token revocation using a Redis-backed whitelist for refresh tokens and a blacklist for access tokens, without touching the database on every request."
+date: "2026-04-01"
+author: "Pir Ahmed Shah"
+tags:
+  - rust
+  - redis
+  - security
+  - architecture
+  - project
+---
+
+# Case Study: Rodevsy's Session Architecture
+
+Stateless JWTs are a trap the moment you need to revoke one. The whole pitch of a JWT is that the server doesn't have to look anything up to validate it, but that's exactly what makes "log this user out everywhere" impossible without a stateful layer sitting behind it. For Rodevsy, that layer is Redis.
+
+## The Two Tokens
+
+Every authenticated session issues a pair:
+- **Access token** - short-lived (15 min), sent on every request, never touches the database.
+- **Refresh token** - long-lived (7 days), used only to mint a new access token.
+
+Both carry a `jti` (JWT ID) claim, a random UUID generated at issuance. That single field is what makes revocation possible.
+
+## Whitelisting Refresh Tokens
+
+Instead of trusting any refresh token that verifies cryptographically, Rodevsy checks that its `jti` exists in Redis:
+
+```rust
+// on login/refresh: register the new refresh token
+redis.set_ex(
+    format!("refresh:{}:{}", user_id, jti),
+    "valid",
+    60 * 60 * 24 * 7, // TTL matches token expiry
+).await?;
+```
+
+On every refresh request, the handler checks membership before trusting the claims:
+
+```rust
+let exists: bool = redis.exists(format!("refresh:{}:{}", claims.sub, claims.jti)).await?;
+if !exists {
+    return Err(AuthError::TokenRevoked);
+}
+```
+
+Rotating on every refresh (deleting the old key, writing a new one) means a stolen refresh token is only useful once - if the legitimate user refreshes first, the attacker's copy is already dead.
+
+## Blacklisting Access Tokens
+
+Access tokens are short-lived enough that whitelisting every single one would be wasteful - that's a write to Redis on every login for a token that expires in 15 minutes anyway. Instead, Rodevsy blacklists only on explicit logout:
+
+```rust
+let remaining_ttl = claims.exp - now_unix_timestamp();
+if remaining_ttl > 0 {
+    redis.set_ex(
+        format!("blacklist:{}", claims.jti),
+        "revoked",
+        remaining_ttl as u64,
+    ).await?;
+}
+```
+
+The TTL is set to whatever time is left on the token, never longer. There's no reason to hold a blacklist entry past the moment the token would have expired on its own - Redis cleans itself up.
+
+The auth middleware then does a single `EXISTS` check per request:
+
+```rust
+if redis.exists(format!("blacklist:{}", claims.jti)).await? {
+    return Err(AuthError::TokenRevoked);
+}
+```
+
+## Why Not Just Whitelist Everything?
+
+The asymmetry is deliberate. Access tokens are checked on *every* API call, so keeping that path cheap matters - no Redis write on issuance, only a read, and only a write on the rare logout event. Refresh tokens are checked far less often (once every 15 minutes at most), so the extra write on issuance is a non-issue, and it buys the ability to invalidate a compromised session immediately rather than waiting for a natural expiry.
+
+## The Takeaway
+
+Stateless auth and revocable auth aren't mutually exclusive - you just push the statefulness to the cheapest possible layer and only pay for it where it's actually needed. Whitelist the token you check rarely, blacklist the token you check constantly, and let TTLs do the cleanup instead of a cron job.

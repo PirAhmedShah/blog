@@ -1,0 +1,69 @@
+---
+title: "Why Roblox RemoteFunctions Are an Anti-Pattern"
+description: "RemoteFunctions look like the natural choice for client-server communication in Roblox, but they yield, they block, and they hand exploiters a direct line to your server logic."
+date: "2026-04-01"
+author: "Pir Ahmed Shah"
+tags:
+  - project
+  - performance
+  - security
+---
+
+# Why Roblox RemoteFunctions Are an Anti-Pattern
+
+`RemoteFunction` looks like the obvious tool the first time you need the client to ask the server for something and get an answer back. It has an `InvokeServer()` call that returns a value, which reads exactly like a normal function call. That familiarity is the problem - it hides the fact that this is a network round trip pretending to be a synchronous call, and Roblox's own documentation recommends against using it in most cases.
+
+## Problem 1: It Yields, and Yielding Is Dangerous
+
+`InvokeServer()` blocks the calling thread until the server responds. If the server-side callback is slow, hangs, or the network has a hiccup, the client script sits there frozen. Worse, if that call happens inside something like a `RenderStepped` connection or another latency-sensitive context, a single slow server response can visibly stall the game for that client.
+
+```lua
+-- client script - this LINE blocks until the server responds
+local result = remoteFunction:InvokeServer("getPlayerData")
+```
+
+There's no built-in timeout. If the server-side handler errors before returning a value, the client can hang indefinitely waiting for a response that will never arrive.
+
+## Problem 2: No Rate Limiting, By Default
+
+A `RemoteFunction`'s server-side handler fires every time it's invoked, with nothing stopping a modified client from calling it hundreds of times a second. Roblox exploits routinely do exactly this - bypass the intended UI entirely and call `InvokeServer()` directly with arbitrary arguments, as fast as the exploit script allows. If the handler does anything expensive (a database lookup, a DataStore call, a physics calculation), that's a trivial denial-of-service vector against your own server.
+
+## Problem 3: It Encourages Trusting the Client's Framing
+
+Because `InvokeServer()` *feels* like calling a function and getting a return value, it's easy to write the handler as if the request itself is trustworthy - "the client is asking for their inventory, so return their inventory." The exploit doesn't have to fake a UI interaction; it just calls the remote directly with whatever arguments it wants, which means every single argument needs full server-side validation regardless of what the client was "supposed" to send.
+
+## The Fix: RemoteEvents, Not RemoteFunctions
+
+The pattern that avoids all three problems: fire a `RemoteEvent` from the client, have the server process it and fire a *different* `RemoteEvent` back with the result, and let the client listen for that response asynchronously.
+
+```lua
+-- client: fire and forget, no blocking
+requestDataEvent:FireServer()
+
+responseEvent.OnClientEvent:Connect(function(data)
+    -- handle the response whenever it actually arrives
+    updateInventoryUI(data)
+end)
+```
+
+```lua
+-- server: validate everything, rate-limit per player, respond async
+local lastRequest = {}
+
+requestDataEvent.OnServerEvent:Connect(function(player)
+    local now = os.clock()
+    if lastRequest[player] and now - lastRequest[player] < 1 then
+        return -- silently drop, exploit is spamming
+    end
+    lastRequest[player] = now
+
+    local data = getValidatedPlayerData(player)
+    responseEvent:FireClient(player, data)
+end)
+```
+
+Nothing blocks. The server can throttle per-player trivially with a timestamp table. And because the response is a separate event firing on its own schedule, there's no expectation of a synchronous return value to exploit.
+
+## The Takeaway
+
+`RemoteFunction` isn't broken, exactly - it's a footgun shaped like a convenience. The blocking call, the lack of built-in rate limiting, and the "it's just a function" framing all push toward code that trusts the client more than it should. `RemoteEvent` pairs require slightly more boilerplate (two events instead of one) but make the async nature of the network call explicit, which is what makes rate limiting and validation feel natural instead of like extra steps you have to remember.

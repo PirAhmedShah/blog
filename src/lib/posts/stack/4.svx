@@ -13,7 +13,7 @@ tags:
 
 # Building a Bulletproof Rust Backend: Performance & Security Deep Dive
 
-When building a platform like **RoDevelops**—which handles user accounts, virtual economies, and sensitive transactions—backend security and performance aren't just "nice-to-haves"; they are the foundation of the entire application. 
+When building a platform like **RoDevelops**-which handles user accounts, virtual economies, and sensitive transactions-backend security and performance aren't just "nice-to-haves"; they are the foundation of the entire application. 
 
 I chose **Rust** with **Actix Web** and **SQLx** for the backend. Rust provides memory safety without a garbage collector, while Actix Web is consistently ranked as one of the fastest web frameworks in the world. However, raw speed means nothing if the architecture is vulnerable. 
 

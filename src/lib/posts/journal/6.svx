@@ -69,7 +69,7 @@ The `fallback` handles items with no counterpart. Like newly added items or item
 
 Even with crossfade working, the items that *stay* in the list still snap to their new positions. `animate:flip` fixes this.
 
-FLIP stands for First, Last, Invert, Play. Svelte snapshots every sibling's position before the DOM update, lets the update happen, snapshots again, then applies the inverse transform so the element appears to still be in the old position. Then it removes that transform with a CSS transition — the element smoothly plays into its new spot.
+FLIP stands for First, Last, Invert, Play. Svelte snapshots every sibling's position before the DOM update, lets the update happen, snapshots again, then applies the inverse transform so the element appears to still be in the old position. Then it removes that transform with a CSS transition - the element smoothly plays into its new spot.
 
 ```svelte
 {#each todos as todo (todo.id)}

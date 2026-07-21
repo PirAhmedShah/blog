@@ -50,8 +50,8 @@ Describe the structure or intent of the post. Every post should have exactly one
 | Tag             | When to use                                             |
 | --------------- | ------------------------------------------------------- |
 | `til`           | Short discovery, something learned unexpectedly         |
-| `retrospective` | Looking back — what happened, what worked, what did not |
-| `prospective`   | Looking forward — plans, goals, intentions              |
+| `retrospective` | Looking back - what happened, what worked, what did not |
+| `prospective`   | Looking forward - plans, goals, intentions              |
 | `opinion`       | A take, a stance, something you disagree with           |
 | `resource`      | Curated reference, links, or tools worth bookmarking    |
 | `learning`      | Deep dive into something you studied intentionally      |

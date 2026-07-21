@@ -1,0 +1,90 @@
+---
+title: "Weighted Tag-Matching: Building a Related-Posts Algorithm"
+description: "A naive 'shares any tag' related-posts algorithm treats a shared format tag the same as a shared topic tag. Here's a weighted scoring approach that doesn't."
+date: "2026-04-04"
+author: "Pir Ahmed Shah"
+tags:
+  - typescript
+  - architecture
+  - project
+---
+
+# Weighted Tag-Matching: Building a Related-Posts Algorithm
+
+This blog's tags aren't all the same kind of tag - [the tag reference](/journal/4) splits them into topic, format, and scope. A naive related-posts algorithm that just counts shared tags treats a shared `weekly` scope tag identically to a shared `svelte` topic tag, which produces relations that are technically true and practically useless - two posts both tagged `retrospective` and `weekly` aren't actually related in any way a reader would care about.
+
+## The Naive Version
+
+```typescript
+function relatedPostsNaive(post: Post, allPosts: Post[]): Post[] {
+  return allPosts
+    .filter(p => p.id !== post.id)
+    .map(p => ({
+      post: p,
+      score: p.tags.filter(t => post.tags.includes(t)).length
+    }))
+    .sort((a, b) => b.score - a.score)
+    .map(r => r.post);
+}
+```
+
+This treats every tag as worth exactly one point, so two weekly logs sharing only `retrospective` + `weekly` outrank a genuinely related deep-dive that only shares one specific topic tag like `svelte`.
+
+## Weighting by Tag Category
+
+The fix is scoring each tag category differently, reflecting how much it actually says about content relevance:
+
+```typescript
+const TAG_WEIGHTS: Record<TagCategory, number> = {
+  topic: 3,   // "what this is about" - the strongest signal
+  format: 1,  // "how it's written" - weak signal, lots of posts share this
+  scope: 0.5, // "what time period" - weakest, almost coincidental
+};
+
+function categorize(tag: string): TagCategory {
+  if (TOPIC_TAGS.has(tag)) return 'topic';
+  if (FORMAT_TAGS.has(tag)) return 'format';
+  return 'scope';
+}
+
+function weightedScore(postTags: string[], candidateTags: string[]): number {
+  const shared = postTags.filter(t => candidateTags.includes(t));
+  return shared.reduce((sum, tag) => sum + TAG_WEIGHTS[categorize(tag)], 0);
+}
+```
+
+Two posts sharing one topic tag (`svelte`) now outscore two posts sharing a format and scope tag (`retrospective` + `weekly`) - 3 points versus 1.5 - which matches how a reader would actually judge relatedness.
+
+## Normalizing for Tag Count
+
+One more issue: a post with eight tags will accumulate a higher raw score against almost anything, just by having more surface area to match against, regardless of how relevant the overlap actually is. Dividing by the total possible weight of the *candidate* post's tags corrects for this:
+
+```typescript
+function normalizedScore(postTags: string[], candidateTags: string[]): number {
+  const raw = weightedScore(postTags, candidateTags);
+  const maxPossible = candidateTags.reduce(
+    (sum, tag) => sum + TAG_WEIGHTS[categorize(tag)], 0
+  );
+  return maxPossible > 0 ? raw / maxPossible : 0;
+}
+```
+
+This turns the score into a rough percentage of "how much of this candidate post's tag identity overlaps with the source post," rather than an unbounded count that favors heavily-tagged posts by default.
+
+## Putting It Together
+
+```typescript
+function relatedPosts(post: Post, allPosts: Post[], limit = 3): Post[] {
+  return allPosts
+    .filter(p => p.id !== post.id)
+    .map(p => ({ post: p, score: normalizedScore(post.tags, p.tags) }))
+    .filter(r => r.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(r => r.post);
+}
+```
+
+## The Takeaway
+
+Tags aren't interchangeable just because they're stored in the same array. Once tags have an implicit category - topic versus format versus scope, in this blog's case - a related-posts algorithm that ignores that distinction is optimizing for "shares the most tags" instead of "is actually about the same thing." Weighting by category, then normalizing against the candidate's own tag weight, is a small amount of extra code for a noticeably better set of relations at the bottom of every post.

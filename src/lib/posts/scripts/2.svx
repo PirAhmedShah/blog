@@ -1,0 +1,51 @@
+---
+title: "Roblox's Client-Server Model & Network Ownership, Explained"
+description: "Roblox quietly hands physics simulation authority to whichever client is 'closest' to a part. Understanding NetworkOwnership is the difference between a game that feels responsive and one that's trivially exploitable."
+date: "2026-04-02"
+author: "Pir Ahmed Shah"
+tags:
+  - project
+  - architecture
+  - performance
+---
+
+# Roblox's Client-Server Model & Network Ownership, Explained
+
+Roblox runs a client-server model like most multiplayer engines: the server is authoritative, clients render what the server tells them, done. Except for physics. Physics simulation for any given `BasePart` is delegated to exactly one machine at a time - the server, or a specific client - and which one is holding that responsibility at any moment is called its **network ownership**.
+
+## Why Ownership Exists At All
+
+Simulating physics for every physical object in a game, for every player, entirely on the server, doesn't scale - the server would need to run full rigid-body simulation for parts that only matter to the single player standing near them. Roblox's solution: hand simulation authority for a part to whichever client is physically closest to it, letting that client's machine do the actual physics math and stream the resulting position back to the server.
+
+```lua
+-- checking who currently owns a part
+local owner = part:GetNetworkOwner()
+if owner == nil then
+    print("Server owns this part")
+else
+    print(owner.Name .. " owns this part")
+end
+```
+
+By default, Roblox auto-assigns ownership based on proximity - the nearest player to an unanchored part typically becomes its owner, and ownership transfers automatically as players move around.
+
+## Where This Gets Exploitable
+
+Here's the part that matters for security: if a client owns a part, that client's machine is the source of truth for that part's physical state, and the server largely trusts what it reports back. A modified client that owns, say, its own player character (which it always does, by default) can report a position anywhere on the map, teleporting instantly from the server's perspective, because the server is trusting client-reported physics data for a part the client legitimately owns.
+
+This is why "anti-teleport" scripts that only check `Humanoid.MoveDirection` or velocity thresholds get bypassed constantly - the exploit isn't moving the character through normal means, it's directly manipulating the CFrame of a part the exploiting client already has ownership authority over.
+
+## Taking Ownership Back Explicitly
+
+For anything security-sensitive - a projectile's damage-dealing hitbox, a currency pickup, a vehicle's collision part - explicitly setting network ownership to the server removes the client's ability to lie about its position:
+
+```lua
+-- force server-side simulation, don't trust the client's physics reporting
+part:SetNetworkOwner(nil)
+```
+
+The tradeoff is real: server-owned parts are simulated on the server, which costs server CPU per part and reintroduces the latency that ownership delegation exists to avoid. The right call is almost always selective - leave cosmetic or non-exploitable parts on client ownership for responsiveness, and force server ownership only on parts where a lying client would actually matter.
+
+## The Takeaway
+
+Network ownership isn't a security feature, it's a performance optimization that happens to have security implications if you don't know it exists. Anything a player can plausibly exploit for advantage - hit detection, currency, movement-adjacent physics - needs either server-side validation that doesn't trust reported positions, or explicit `SetNetworkOwner(nil)` to take the client's authority away entirely.

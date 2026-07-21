@@ -173,7 +173,7 @@ pre.shiki::-webkit-scrollbar-thumb {
 .prose {
 	color: var(--foreground);
 	line-height: 1.8;
-	font-size: 1rem; /* was 1.125rem — slightly more balanced base */
+	font-size: 1rem; /* was 1.125rem - slightly more balanced base */
 	max-width: 65ch;
 	margin: 0 auto;
 }
@@ -309,7 +309,7 @@ pre.shiki::-webkit-scrollbar-thumb {
    Tables
    ========================================= */
 
-/* Scrollable wrapper — wrap <table> in <div class="table-wrapper"> */
+/* Scrollable wrapper - wrap <table> in <div class="table-wrapper"> */
 .table-wrapper {
 	width: 100%;
 	box-sizing: border-box;

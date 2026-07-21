@@ -1,0 +1,79 @@
+---
+title: "Rodevsy's CI/CD: From Manual SSH Builds to a Docker Registry Pipeline"
+description: "Devlog on replacing a manual fetch-build-host workflow with GitHub Actions, a private Docker Registry, and reusable workflow files."
+date: "2026-04-04"
+author: "Pir Ahmed Shah"
+tags:
+  - workflow
+  - project
+  - architecture
+  - retrospective
+---
+
+# Rodevsy's CI/CD: From Manual SSH Builds to a Docker Registry Pipeline
+
+For the first stretch of Rodevsy's backend deployment, the process was: SSH into the VPS, `git pull`, build, restart the process on a raw HTTP port. It worked, in the sense that the site was reachable, but every deploy meant sitting at a terminal watching a build finish before manually killing and restarting a process. No rollback path if the build broke mid-restart, no audit trail beyond shell history.
+
+## Step 1: Get the Build Off the VPS
+
+The first fix was moving the build step out of the deploy path entirely. A GitHub Actions workflow builds a Docker image on every push to `main` and pushes it to a private registry:
+
+```yaml
+- name: Build and push Docker image
+  run: |
+    echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+    docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+    docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+```
+
+The VPS's only job now is to pull a pre-built image and restart the container - no compiler, no build toolchain, no build failures happening on production hardware.
+
+## Step 2: Tag by SHA, Not `latest`
+
+Tagging every image with `latest` means you can never be certain which commit is actually running without checking logs. Tagging by `github.sha` instead means the running container's tag *is* the deploy record:
+
+```yaml
+- name: Deploy to VPS
+  uses: appleboy/ssh-action@v1
+  with:
+    host: ${{ secrets.VPS_HOST }}
+    username: ${{ secrets.VPS_USER }}
+    key: ${{ secrets.VPS_SSH_KEY }}
+    script: |
+      cd /app
+      IMAGE_TAG=${{ github.sha }} docker compose -f compose.prod.yaml pull api
+      docker compose -f compose.prod.yaml up -d --no-deps api
+```
+
+Rolling back a bad deploy is now "re-run the previous SHA's tag," not "hope the last known-good build is still cached somewhere."
+
+## Step 3: Reusable Workflows
+
+Once `ci.yaml` and `cd.yaml` both existed, the duplication became obvious - checkout, Node setup, pnpm install, and cache steps were copy-pasted between them. Reusable workflows fix this by extracting the shared steps into a callable workflow:
+
+```yaml
+# .github/workflows/_setup.yaml
+on:
+  workflow_call:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+```
+
+Both `ci.yaml` and `cd.yaml` call it with `uses: ./.github/workflows/_setup.yaml`, which means a change to the Node version or cache strategy happens in one file instead of two - and stays in sync as more repos in the Rodevsy ecosystem adopt the same pattern.
+
+## The Takeaway
+
+The jump from "SSH in and build it live" to "pull a pre-built, SHA-tagged image" isn't really about GitHub Actions specifically - it's about moving the point of failure off production hardware and making every deploy traceable to a specific commit. The reusable workflow step is smaller in comparison, but it's what keeps the pipeline maintainable once it's not the only repo using it.

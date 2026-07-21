@@ -1,0 +1,87 @@
+---
+title: "Building a Container From Scratch: Namespaces & Cgroups in C"
+description: "Docker isn't magic. Linux namespaces provide the isolation and cgroups provide the resource limits - here's both, built manually in C, to see what
+ a 'container' actually is under the hood."
+date: "2026-04-01"
+author: "Pir Ahmed Shah"
+tags:
+  - project
+  - learning
+  - performance
+---
+
+# Building a Container From Scratch: Namespaces & Cgroups in C
+
+"Containers aren't real, they're just processes with extra flags" is the kind of statement that sounds glib until you actually build one and realize it's literally true. A container is a regular Linux process, given a restricted view of the system via **namespaces** and a resource budget via **cgroups**. No hypervisor, no separate kernel. Building a minimal one in C is the fastest way to actually understand what Docker is doing underneath `docker run`.
+
+## Namespaces: Isolation
+
+`clone()` is the syscall that creates a new process, and unlike `fork()`, it takes a set of flags that determine what the child process gets its *own* isolated view of.
+
+```c
+#include <sched.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+#define STACK_SIZE (1024 * 1024)
+
+int child_func(void *arg) {
+    // this process now has its own PID namespace - it sees itself as PID 1
+    sethostname("container", 9);
+    execvp("/bin/bash", (char *[]){"/bin/bash", NULL});
+    return 1;
+}
+
+int main() {
+    char *stack = malloc(STACK_SIZE);
+    pid_t pid = clone(
+        child_func,
+        stack + STACK_SIZE,
+        CLONE_NEWPID |   // new PID namespace: child sees itself as PID 1
+        CLONE_NEWNS  |   // new mount namespace: child gets its own filesystem view
+        CLONE_NEWUTS |   // new UTS namespace: child can set its own hostname
+        SIGCHLD,
+        NULL
+    );
+    waitpid(pid, NULL, 0);
+    return 0;
+}
+```
+
+Three flags, three isolated views:
+- **`CLONE_NEWPID`** - the child's process tree starts fresh. Inside the namespace it's PID 1; it cannot see or signal processes outside it.
+- **`CLONE_NEWNS`** - the child gets its own mount table, so mounting or unmounting filesystems inside doesn't affect the host.
+- **`CLONE_NEWUTS`** - the child can set its own hostname without touching the host's.
+
+Combined with `chroot()` to swap the visible root filesystem, this is most of what makes a process feel "containerized" - it just can't see anything outside the box it was handed.
+
+## Cgroups: Resource Limits
+
+Namespaces control *what a process can see*. They say nothing about *how much CPU or memory it can use* - that's a completely separate mechanism, cgroups (control groups), exposed as a regular filesystem under `/sys/fs/cgroup`.
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+
+void limit_memory(pid_t pid) {
+    system("mkdir -p /sys/fs/cgroup/mycontainer");
+
+    FILE *f = fopen("/sys/fs/cgroup/mycontainer/memory.max", "w");
+    fprintf(f, "%d", 100 * 1024 * 1024); // 100 MB hard limit
+    fclose(f);
+
+    f = fopen("/sys/fs/cgroup/mycontainer/cgroup.procs", "w");
+    fprintf(f, "%d", pid); // add our process to this cgroup
+    fclose(f);
+}
+```
+
+Once a PID is written into `cgroup.procs`, the kernel enforces `memory.max` directly - exceed it, and the OOM killer terminates the process, not gracefully, just as it would any other memory-hogging process on the system. The same mechanism (a virtual file per resource, write a PID to join, write a limit to constrain) applies to `cpu.max`, `pids.max`, and `io.max`.
+
+## Putting Both Together
+
+The full picture: `clone()` with namespace flags gives the process an isolated *view* of the system, `chroot()` swaps its visible filesystem root, and writing its PID into a cgroup gives it a hard resource ceiling the kernel actually enforces. Docker does all three, plus a union filesystem for image layering and a lot of tooling around image distribution - but the isolation and resource-limiting primitives underneath are exactly these two kernel features, not something more exotic.
+
+## The Takeaway
+
+There's no separate "container kernel" or hidden virtualization layer. A container is a process that `clone()` handed a smaller view of the system to, and that a cgroup handed a smaller budget of resources to. Building one by hand in C, even a minimal broken version that only isolates PID and mount namespaces, makes every subsequent Docker concept - images, volumes, resource limits in `compose.yaml` - look like configuration for these two primitives instead of magic.

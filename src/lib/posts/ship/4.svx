@@ -1,0 +1,51 @@
+---
+title: "Case Study: Migrating Rodevsy's VPS to Rootless Docker"
+description: "The docker group grants root on the host, full stop. Here's how Rodevsy's deployment pipeline was reworked around rootless Docker to close that hole."
+date: "2026-04-05"
+author: "Pir Ahmed Shah"
+tags:
+  - security
+  - project
+  - workflow
+---
+
+# Case Study: Migrating Rodevsy's VPS to Rootless Docker
+
+Any user in the `docker` group on a Linux host is, functionally, root. Not "has elevated permissions" - actually root, achievable in a single command:
+
+```bash
+docker run -v /:/mnt --rm ubuntu chroot /mnt
+```
+
+Mounting the entire host filesystem into a container and `chroot`-ing into it hands over full read/write access to every file on the machine the daemon runs on, including root's crontab. This was flagged as a risk in Rodevsy's deployment pipeline once the GitHub Actions CI/CD setup was in place and using the `docker` group to avoid `sudo` on every deploy step.
+
+## Why the Docker Group Is the Actual Vulnerability
+
+The Docker daemon itself runs as root. When a user is added to the `docker` group, they're not given a sandboxed subset of root's power - they're given a socket that talks to a process that already has full host access. Anything the daemon can do, a member of that group can ask it to do, including mounting `/` and stepping outside any container boundary entirely. This isn't a misconfiguration; it's how the daemon is designed to work by default.
+
+## The Fix: Rootless Docker
+
+Rootless mode runs the Docker daemon itself as an unprivileged user, using user namespaces to remap container UIDs to a range that has no actual privilege on the host:
+
+```bash
+# install and configure rootless Docker for the deploy user
+curl -fsSL https://get.docker.com/rootless | sh
+dockerd-rootless-setuptool.sh install
+
+# add to the deploy user's shell profile
+export PATH=/home/deploy/bin:$PATH
+export DOCKER_HOST=unix:///run/user/1000/docker.sock
+```
+
+With this in place, a container's "root" (UID 0 inside the container) maps to an unprivileged UID on the host. The same `-v /:/mnt` mount trick still runs, but the resulting container process has no more host privilege than the deploy user already had - there's no daemon running as real root to escalate into.
+
+## What Had to Change in the Deploy Scripts
+
+Rootless Docker isn't a drop-in replacement - a few things needed adjusting:
+- **Socket path.** `DOCKER_HOST` needed to be set explicitly in the GitHub Actions SSH step, since rootless mode doesn't use the default `/var/run/docker.sock`.
+- **Port binding below 1024.** Rootless containers can't bind privileged ports directly; Nginx on the host handles port 80/443 and reverse-proxies to the container's unprivileged port instead, which Rodevsy's setup already did.
+- **Volume permissions.** Bind-mounted volumes needed their ownership adjusted to match the remapped UID range, or the container would see permission-denied errors on files it used to be able to write.
+
+## The Takeaway
+
+"Just don't add anyone to the docker group" isn't a real answer for a deploy pipeline that needs to run Docker commands without `sudo` on every step. Rootless Docker is the actual fix, because it removes the privileged daemon from the equation entirely rather than trying to trust the group membership more carefully. The migration cost is real - port binding and volume permissions both need rethinking - but it closes a hole that's one `-v /:/mnt` away from a full host compromise.

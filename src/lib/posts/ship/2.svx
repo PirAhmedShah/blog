@@ -1,0 +1,60 @@
+---
+title: "Designing the Rodevsy ERD: Modeling Mutually Exclusive Relationships"
+description: "How to model 'this belongs to exactly one of several possible parent types' in a relational schema, without giving up referential integrity."
+date: "2026-04-03"
+author: "Pir Ahmed Shah"
+tags:
+  - architecture
+  - project
+  - learning
+---
+
+# Designing the Rodevsy ERD: Mutually Exclusive Relationships
+
+Rodevsy's data model has a recurring shape: some entity needs to belong to *exactly one* of several possible parent types, never more than one, never zero. A listing might belong to a Game or to a Studio, but never both. A transaction record might reference a Purchase or a Payout, but never both. This is called an **arc relationship** (or mutually exclusive relationship) in ER modeling, and naively implemented, it silently breaks referential integrity.
+
+## The Naive Approach
+
+The obvious first instinct is a nullable foreign key per possible parent:
+
+```sql
+CREATE TABLE listing (
+    id UUID PRIMARY KEY,
+    game_id UUID REFERENCES game(id),
+    studio_id UUID REFERENCES studio(id)
+);
+```
+
+This compiles, and it even works most of the time. The problem: nothing stops a row from having both `game_id` and `studio_id` set, or neither. The schema *looks* like it enforces the business rule, but it only enforces "these columns are optionally related to those tables." The actual constraint - exactly one, never both - lives entirely in application code, which means it's exactly one missed validation away from a corrupted row.
+
+## The Fix: A Discriminator Plus a Check Constraint
+
+The schema needs to say what the business rule actually is, not just approximate it:
+
+```sql
+CREATE TABLE listing (
+    id UUID PRIMARY KEY,
+    owner_type TEXT NOT NULL CHECK (owner_type IN ('game', 'studio')),
+    game_id UUID REFERENCES game(id),
+    studio_id UUID REFERENCES studio(id),
+
+    CONSTRAINT owner_type_consistency CHECK (
+        (owner_type = 'game'   AND game_id IS NOT NULL AND studio_id IS NULL) OR
+        (owner_type = 'studio' AND studio_id IS NOT NULL AND game_id IS NULL)
+    )
+);
+```
+
+Now the database itself rejects a row where both are set, or where the discriminator disagrees with which foreign key is populated. This isn't just documentation for future-me reading the schema - Postgres enforces it on every `INSERT` and `UPDATE`, regardless of which code path wrote the row.
+
+## Why Not Just a Polymorphic Foreign Key?
+
+The other common pattern is a single `owner_id` column with no formal foreign key at all, relying on `owner_type` to tell you which table to join against in application code. This is faster to write and worse in every way that matters: Postgres can no longer enforce that `owner_id` actually points at a real row, cascading deletes silently stop working, and any join requires a `CASE` in application code instead of a plain `JOIN`. The extra nullable-columns-plus-check-constraint approach costs a bit more schema, but keeps every foreign key a real, enforced foreign key.
+
+## What This Looked Like in the Actual ERD
+
+Working through Rodevsy's ERD in Figma, the arc relationship pattern showed up in more places than expected once I knew to look for it - anywhere the product spec used the word "or" between two entity types was a candidate. Marking those explicitly in the diagram, rather than discovering them mid-implementation, meant the migration files were written once instead of patched after a bug report.
+
+## The Takeaway
+
+If your business rule is "exactly one of these, never both," your schema should say exactly that - not "these are both technically optional and we trust the app layer." A `CHECK` constraint costs a few lines and buys you a guarantee the database enforces for the entire lifetime of the table, including the migration you haven't written yet.
