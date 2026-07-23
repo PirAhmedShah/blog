@@ -1,19 +1,20 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import Moon from '@lucide/svelte/icons/moon';
 	import Sun from '@lucide/svelte/icons/sun';
 
 	let { size = 24 } = $props();
-	let theme = 'light';
 
 	onMount(() => {
-		theme = localStorage.getItem('theme') || 'light';
+		const savedTheme = localStorage.getItem('theme') || 'light';
+		document.documentElement.setAttribute('data-theme', savedTheme);
 	});
 
 	function toggleTheme() {
-		theme = theme === 'light' ? 'dark' : 'light';
-		document.documentElement.setAttribute('data-theme', theme);
-		localStorage.setItem('theme', theme);
+		const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+		const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+		document.documentElement.setAttribute('data-theme', newTheme);
+		localStorage.setItem('theme', newTheme);
 	}
 </script>
 

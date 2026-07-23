@@ -1,10 +1,17 @@
 <script lang="ts">
 	let { tags, selected = $bindable([]) } = $props();
-	selected = []; //reset the state in every initialization, insuring tags filter reset on category navigation
+
+	// Reset the state on initialization to ensure tags filter resets on category navigation
+	// (Assumes the component is keyed by the parent, or this runs once per mount)
+	selected = [];
+
 	const toggle = (tag: string) => {
 		const idx = selected.indexOf(tag);
-		if (idx !== -1) selected.splice(idx, 1);
-		else selected.push(tag);
+		if (idx !== -1) {
+			selected.splice(idx, 1);
+		} else {
+			selected.push(tag);
+		}
 	};
 </script>
 
@@ -13,7 +20,7 @@
 		<p class="filter-label">
 			Filter by tag
 			{#if selected.length > 0}
-				<button class="clear-btn" onclick={() => (selected.length = 0)}> Clear all × </button>
+				<button class="clear-btn" onclick={() => (selected = [])}> Clear all × </button>
 			{/if}
 		</p>
 		<div class="tag-list" role="group" aria-label="Tag filters">

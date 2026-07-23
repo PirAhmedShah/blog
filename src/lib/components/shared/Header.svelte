@@ -34,7 +34,7 @@
 
 <style>
 	header {
-		transition: all 0.3 ease;
+		transition: all 0.3s ease;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;

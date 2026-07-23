@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import Logo from '$lib/components/ui/Logo.svelte';
 	import type { IconProps } from '@lucide/svelte';
 	import Book from '@lucide/svelte/icons/book';
 	import Code from '@lucide/svelte/icons/code';
@@ -63,6 +64,7 @@
 <main>
 	<section class="hero" in:fade={{ duration: 600 }}>
 		<p class="eyebrow">Pir Ahmed Shah</p>
+		<Logo width=128 height=128/>
 		<h1>Writing about what<br />I'm learning to build.</h1>
 		<p class="subtitle">
 			A technical blog covering systems programming, web engineering, game scripting, and university
