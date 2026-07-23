@@ -7,13 +7,13 @@
 
 	// Initialize with current theme, fallback to 'light'
 	let theme = $state(
-		browser ? document.documentElement.getAttribute('data-theme') || 'light' : 'light'
+		browser ? document.documentElement.getAttribute('data-theme') || 'dark' : 'dark'
 	);
 
 	onMount(() => {
 		// Reactively update when the ThemeToggle changes the data-theme attribute
 		const observer = new MutationObserver(() => {
-			theme = document.documentElement.getAttribute('data-theme') || 'light';
+			theme = document.documentElement.getAttribute('data-theme') || 'dark';
 		});
 
 		observer.observe(document.documentElement, {
