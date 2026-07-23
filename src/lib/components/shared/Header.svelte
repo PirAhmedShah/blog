@@ -12,7 +12,9 @@
 </script>
 
 <header>
-	<a href={resolve('/')}> <img src="{base}/logo.svg" alt="Brand" height={32} width={32} /> </a>
+	<a href={resolve('/')}>
+		<img src="{base}/logo.svg" alt="Brand" height={32} width={32} loading="eager" />
+	</a>
 
 	<nav aria-label="Category navigation">
 		<ul>

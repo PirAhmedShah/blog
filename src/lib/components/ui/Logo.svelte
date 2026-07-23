@@ -32,7 +32,7 @@
 	alt="Pir Ahmed Shah"
 	class="avatar"
 	class:dark={theme === 'dark'}
-	loading="lazy"
+	loading="eager"
 />
 
 <style>
