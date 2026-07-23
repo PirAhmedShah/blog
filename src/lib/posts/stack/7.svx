@@ -11,7 +11,7 @@ tags:
 
 # Weighted Tag-Matching: Building a Related-Posts Algorithm
 
-This blog's tags aren't all the same kind of tag - [the tag reference](/journal/4) splits them into topic, format, and scope. A naive related-posts algorithm that just counts shared tags treats a shared `weekly` scope tag identically to a shared `svelte` topic tag, which produces relations that are technically true and practically useless - two posts both tagged `retrospective` and `weekly` aren't actually related in any way a reader would care about.
+This blog's tags aren't all the same kind of tag - [the tag reference](https://pirahmedshah.github.io/blog/journal/4/resource-tag-reference/) splits them into topic, format, and scope. A naive related-posts algorithm that just counts shared tags treats a shared `weekly` scope tag identically to a shared `svelte` topic tag, which produces relations that are technically true and practically useless - two posts both tagged `retrospective` and `weekly` aren't actually related in any way a reader would care about.
 
 ## The Naive Version
 
